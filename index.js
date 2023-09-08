@@ -406,7 +406,7 @@ function initInput() {
   window.addEventListener('message', function(e) {
     if ('example' in e.data) {
       var text = e.data.example;
-      input.setSingle();
+      // input.setSingle();
       input.setValue(text);
       input.setFocus();
     }
