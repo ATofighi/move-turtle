@@ -365,3 +365,8 @@ body {
   #run, #stop { height: auto; bottom: 10px; }
   #clear { display: none; }
 }
+
+pre {
+  text-align: left;
+  direction: ltr;
+}

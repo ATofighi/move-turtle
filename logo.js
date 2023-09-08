@@ -1436,124 +1436,10 @@ function LogoInterpreter(turtle, stream, savehook)
   // 2.1 Constructors
   //
 
-  def("word", function(word1, word2) {
-    return arguments.length ?
-      Array.from(arguments).map(sexpr).reduce(function(a, b) { return a + b; }) : "";
-  }, {minimum: 0, maximum: -1});
-
-  def("list", function(thing1, thing2) {
-    return Array.from(arguments).map(function(x) { return x; }); // Make a copy
-  }, {minimum: 0, maximum: -1});
-
-  def(["sentence", "se"], function(thing1, thing2) {
-    var list = [];
-    for (var i = 0; i < arguments.length; ++i) {
-      var thing = arguments[i];
-      if (Type(thing) === 'list') {
-        thing = lexpr(thing);
-        list = list.concat(thing);
-      } else {
-        list.push(thing);
-      }
-    }
-    return list;
-  }, {minimum: 0, maximum: -1});
-
-  def("fput", function(thing, list) {
-    var l = lexpr(list);
-    l.unshift(thing);
-    return sifw(list, l);
-  });
-
-  def("lput", function(thing, list) {
-    var l = lexpr(list);
-    l.push(thing);
-    return sifw(list, l);
-  });
-
-  def("array", function(size) {
-    size = aexpr(size);
-    if (size < 1)
-      throw err("{_PROC_}: Array size must be positive integer", ERRORS.BAD_INPUT);
-    var origin = (arguments.length < 2) ? 1 : aexpr(arguments[1]);
-    return new LogoArray(size, origin);
-  }, {maximum: 2});
-
-  def("mdarray", function(sizes) {
-    sizes = lexpr(sizes).map(aexpr).map(function(n) { return n|0; });
-    if (sizes.some(function(size) { return size < 1; }))
-      throw err("{_PROC_}: Array size must be positive integer", ERRORS.BAD_INPUT);
-    var origin = (arguments.length < 2) ? 1 : aexpr(arguments[1]);
-
-    function make(index) {
-      var n = sizes[index], a = new LogoArray(n, origin);
-      if (index + 1 < sizes.length) {
-        for (var i = 0; i < n; ++i)
-          a.setItem(i + origin, make(index + 1));
-      }
-      return a;
-    }
-
-    return make(0);
-  }, {maximum: 2});
-
-  def("listtoarray", function(list) {
-    list = lexpr(list);
-    var origin = 1;
-    if (arguments.length > 1)
-      origin = aexpr(arguments[1]);
-    return LogoArray.from(list, origin);
-  }, {maximum: 2});
-
-  def("arraytolist", function(array) {
-    if (Type(array) !== 'array') {
-      throw err("{_PROC_}: Expected array", ERRORS.BAD_INPUT);
-    }
-    return array.list.slice();
-  });
-
-  def("combine", function(thing1, thing2) {
-    if (Type(thing2) !== 'list') {
-      return this.routines.get('word')(thing1, thing2);
-    } else {
-      return this.routines.get('fput')(thing1, thing2);
-    }
-  });
-
-  def("reverse", function(list) {
-    var tail = (arguments.length > 1) ? arguments[1] : (Type(list) === 'list' ? [] : '');
-    return sifw(tail, lexpr(list).reverse().concat(lexpr(tail)));
-  }, {maximum: 2});
-
-  this.gensym_index = 0;
-  def("gensym", function() {
-    ++this.gensym_index;
-    return 'G' + this.gensym_index;
-  });
-
   //
   // 2.2 Data Selectors
   //
 
-  def("first", function(list) { return lexpr(list)[0]; });
-
-  def("firsts", function(list) {
-    return lexpr(list).map(function(x) { return x[0]; });
-  });
-
-  def("last", function(list) { list = lexpr(list); return list[list.length - 1]; });
-
-  def(["butfirst", "bf"], function(list) {
-    return sifw(list, lexpr(list).slice(1));
-  });
-
-  def(["butfirsts", "bfs"], function(list) {
-    return lexpr(list).map(function(x) { return sifw(x, lexpr(x).slice(1)); });
-  });
-
-  def(["butlast", "bl"], function(list) {
-    return Type(list) === 'word' ? String(list).slice(0, -1) : lexpr(list).slice(0, -1);
-  });
 
   function item(index, thing) {
     switch (Type(thing)) {
@@ -1570,52 +1456,6 @@ function LogoInterpreter(turtle, stream, savehook)
       return thing.charAt(index - 1);
     }
   }
-
-  def("item", function(index, thing) {
-    index = aexpr(index)|0;
-    return item(index, thing);
-  });
-
-  def("mditem", function(indexes, thing) {
-    indexes = lexpr(indexes).map(aexpr).map(function(n) { return n|0; });
-    while (indexes.length)
-      thing = item(indexes.shift(), thing);
-    return thing;
-  });
-
-  def("pick", function(list) {
-    list = lexpr(list);
-    var i = Math.floor(this.prng.next() * list.length);
-    return list[i];
-  });
-
-  def("remove", function(thing, list) {
-    return sifw(list, lexpr(list).filter(function(x) { return !equal(x, thing); }));
-  });
-
-  def("remdup", function(list) {
-    // TODO: This only works with JS equality. Use equalp.
-    var set = new Set();
-    return sifw(list, lexpr(list).filter(function(x) {
-      if (set.has(x)) { return false; } else { set.add(x); return true; }
-    }));
-  });
-
-  def("split", function(thing, list) {
-    var l = lexpr(list);
-    return lexpr(list)
-      .reduce(function(ls, i) {
-        return (equal(i, thing) ? ls.push([]) : ls[ls.length - 1].push(i), ls);
-      }, [[]])
-      .filter(function(l) { return l.length > 0; })
-      .map(function(e) { return sifw(list, e); });
-  });
-
-  def("quoted", function(thing) {
-    if (Type(thing) === 'word')
-      return '"' + thing;
-    return thing;
-  });
 
 
   //
@@ -1634,174 +1474,16 @@ function LogoInterpreter(turtle, stream, savehook)
     }
   }
 
-  def("setitem", function(index, array, value) {
-    index = aexpr(index);
-    if (Type(array) !== 'array')
-      throw err("{_PROC_}: Expected array", ERRORS.BAD_INPUT);
-    if (contains(value, array))
-      throw err("{_PROC_}: Can't create circular array", ERRORS.BAD_INPUT);
-    array.setItem(index, value);
-  });
-
-  def("mdsetitem", function(indexes, thing, value) {
-    indexes = lexpr(indexes).map(aexpr).map(function(n) { return n|0; });
-    if (Type(thing) !== 'array')
-      throw err("{_PROC_}: Expected array", ERRORS.BAD_INPUT);
-    if (contains(value, thing))
-      throw err("{_PROC_}: Can't create circular array", ERRORS.BAD_INPUT);
-    while (indexes.length > 1) {
-      thing = item(indexes.shift(), thing);
-      if (Type(thing) !== 'array')
-        throw err("{_PROC_}: Expected array", ERRORS.BAD_INPUT);
-    }
-    thing.setItem(indexes.shift(), value);
-  });
-
-  def(".setfirst", function(list, value) {
-     if (Type(list) !== 'list')
-      throw err("{_PROC_}: Expected list", ERRORS.BAD_INPUT);
-    list[0] = value;
-  });
-
-  def(".setbf", function(list, value) {
-    if (Type(list) !== 'list')
-      throw err("{_PROC_}: Expected non-empty list", ERRORS.BAD_INPUT);
-    if (list.length < 1)
-      throw err("{_PROC_}: Expected non-empty list", ERRORS.BAD_INPUT);
-    value = lexpr(value);
-    list.length = 1;
-    list.push.apply(list, value);
-  });
-
-  def(".setitem", function(index, array, value) {
-    index = aexpr(index);
-    if (Type(array) !== 'array')
-      throw err("{_PROC_}: Expected array", ERRORS.BAD_INPUT);
-    array.setItem(index, value);
-  });
-
-  def("push", function(stackname, thing) {
-    var got = getvar(stackname);
-    var stack = lexpr(got);
-    stack.unshift(thing);
-    setvar(stackname, sifw(got, stack));
-  });
-
-  def("pop", function(stackname) {
-    var got = getvar(stackname);
-    var stack = lexpr(got);
-    var atom = stack.shift();
-    setvar(stackname, sifw(got, stack));
-    return atom;
-  });
-
-  def("queue", function(stackname, thing) {
-    var got = getvar(stackname);
-    var queue = lexpr(got);
-    queue.push(thing);
-    setvar(stackname, sifw(got, queue));
-  });
-
-  def("dequeue", function(stackname) {
-    var got = getvar(stackname);
-    var queue = lexpr(got);
-    var atom = queue.pop();
-    setvar(stackname, sifw(got, queue));
-    return atom;
-  });
-
 
   //
   // 2.4 Predicates
   //
 
-  def(["wordp", "word?"], function(thing) { return Type(thing) === 'word' ? 1 : 0; });
-  def(["listp", "list?"], function(thing) { return Type(thing) === 'list' ? 1 : 0; });
-  def(["arrayp", "array?"], function(thing) { return Type(thing) === 'array' ? 1 : 0; });
-  def(["numberp", "number?"], function(thing) {
-    return Type(thing) === 'word' && isNumber(thing) ? 1 : 0;
-  });
-  def(["numberwang"], function(thing) { return this.prng.next() < 0.5 ? 1 : 0; });
-
-  def(["equalp", "equal?"], function(a, b) { return equal(a, b) ? 1 : 0; });
-  def(["notequalp", "notequal?"], function(a, b) { return !equal(a, b) ? 1 : 0; });
-
-  def(["emptyp", "empty?"], function(thing) {
-    switch (Type(thing)) {
-    case 'word': return String(thing).length === 0 ? 1 : 0;
-    case 'list': return thing.length === 0 ? 1 : 0;
-    default: return 0;
-    }
-  });
-  def(["beforep", "before?"], function(word1, word2) {
-    return sexpr(word1) < sexpr(word2) ? 1 : 0;
-  });
-
-  def(".eq", function(a, b) { return a === b && a && typeof a === 'object'; });
-
-  // Not Supported: vbarredp
-
-  def(["memberp", "member?"], function(thing, list) {
-    return lexpr(list).some(function(x) { return equal(x, thing); }) ? 1 : 0;
-  });
-
-
-  def(["substringp", "substring?"], function(word1, word2) {
-    return sexpr(word2).indexOf(sexpr(word1)) !== -1 ? 1 : 0;
-  });
 
   //
   // 2.5 Queries
   //
 
-  def("count", function(thing) {
-    if (Type(thing) === 'array')
-      return thing.length;
-    return lexpr(thing).length;
-  });
-  def("ascii", function(chr) { return sexpr(chr).charCodeAt(0); });
-  // Not Supported: rawascii
-  def("char", function(integer) { return String.fromCharCode(aexpr(integer)); });
-
-  def("member", function(thing, input) {
-    var list = lexpr(input);
-    var index = list.findIndex(function(x) { return equal(x, thing); });
-    list = (index === -1) ? [] : list.slice(index);
-    return sifw(input, list);
- });
-
-  def("lowercase", function(word) { return sexpr(word).toLowerCase(); });
-  def("uppercase", function(word) { return sexpr(word).toUpperCase(); });
-
-  def("standout", function(word) {
-    // Hack: Convert English alphanumerics to Mathematical Bold
-    return sexpr(word)
-      .split('')
-      .map(function(c) {
-        var u = c.charCodeAt(0);
-        if ('A' <= c && c <= 'Z') {
-          u = u - 0x41 + 0x1D400;
-        } else if ('a' <= c && c <= 'z') {
-          u = u - 0x61 + 0x1D41A;
-        } else if ('0' <= c && c <= '9') {
-          u = u - 0x30 + 0x1D7CE;
-        } else {
-          return c;
-        }
-        var lead = ((u - 0x10000) >> 10) + 0xD800;
-        var trail = ((u - 0x10000) & 0x3FF) + 0xDC00;
-        return String.fromCharCode(lead, trail);
-      })
-      .join('');
-  });
-
-  def("parse", function(word) {
-    return parse('[' + sexpr(word) + ']')[0];
-  });
-
-  def("runparse", function(word) {
-    return parse(sexpr(word));
-  });
 
   //----------------------------------------------------------------------
   //
@@ -1811,38 +1493,8 @@ function LogoInterpreter(turtle, stream, savehook)
 
   // 3.1 Transmitters
 
-  def(["print", "pr"], function(thing) {
-    var s = Array.from(arguments).map(stringify_nodecorate).join(" ");
-    return this.stream.write(s, "\n");
-  }, {minimum: 0, maximum: -1});
-  def("type", function(thing) {
-    var s = Array.from(arguments).map(stringify_nodecorate).join("");
-    return this.stream.write(s);
-  }, {minimum: 0, maximum: -1});
-  def("show", function(thing) {
-    var s = Array.from(arguments).map(stringify).join(" ");
-    return this.stream.write(s, "\n");
-  }, {minimum: 0, maximum: -1});
 
   // 3.2 Receivers
-
-  def("readlist", function() {
-    return (
-      (arguments.length > 0)
-        ? stream.read(stringify_nodecorate(arguments[0]))
-        : stream.read()
-    ).then(function(word) {
-      return parse('[' + word + ']')[0];
-    });
-  }, {maximum: 1});
-
-  def("readword", function() {
-    if (arguments.length > 0)
-      return stream.read(stringify_nodecorate(arguments[0]));
-    else
-      return stream.read();
-  }, {maximum: 1});
-
 
   // Not Supported: readrawline
   // Not Supported: readchar
@@ -1877,47 +1529,6 @@ function LogoInterpreter(turtle, stream, savehook)
   // 3.4 Terminal Access
 
   // Not Supported: keyp
-
-  def(["cleartext", "ct"], function() {
-    return this.stream.clear();
-  });
-
-  // Not Supported: setcursor
-  // Not Supported: cursor
-  // Not Supported: setmargins
-
-  def('settextcolor', function(color) {
-    this.stream.color = parseColor(color);
-  });
-
-  def('textcolor', function() {
-    return this.stream.color;
-  });
-
-  def('increasefont', function() {
-    this.stream.textsize = Math.round(this.stream.textsize * 1.25);
-  });
-
-  def('decreasefont', function() {
-    this.stream.textsize = Math.round(this.stream.textsize / 1.25);
-  });
-
-  def('settextsize', function(size) {
-    this.stream.textsize = aexpr(size);
-  });
-
-  def('textsize', function() {
-    return this.stream.textsize;
-  });
-
-  def('setfont', function(size) {
-    this.stream.font = sexpr(size);
-  });
-
-  def('font', function() {
-    return this.stream.font;
-  });
-
 
   //----------------------------------------------------------------------
   //
@@ -2148,10 +1759,10 @@ function LogoInterpreter(turtle, stream, savehook)
   //----------------------------------------------------------------------
   // 6.1 Turtle Motion
 
-  def(["forward", "fd"], function(a) { return turtle.move(aexpr(a)); });
-  def(["back", "bk"], function(a) { return turtle.move(-aexpr(a)); });
-  def(["left", "lt"], function(a) { return turtle.turn(-aexpr(a)); });
-  def(["right", "rt"], function(a) { return turtle.turn(aexpr(a)); });
+  def(["fd"], function(a) { return turtle.move(aexpr(a)); });
+  def(["bk"], function(a) { return turtle.move(-aexpr(a)); });
+  def(["lt"], function(a) { return turtle.turn(-aexpr(a)); });
+  def(["rt"], function(a) { return turtle.turn(aexpr(a)); });
 
   // Left arrow:
   def(["\u2190"], function() { return turtle.turn(-15); });
@@ -2217,15 +1828,6 @@ function LogoInterpreter(turtle, stream, savehook)
         turtle.fillpath(fillcolor);
       });
   });
-
-  def("label", function(a) {
-    var s = Array.from(arguments).map(stringify_nodecorate).join(" ");
-    return turtle.drawtext(s);
-  }, {maximum: -1});
-
-  def("setlabelheight", function(a) { turtle.fontsize = aexpr(a); });
-
-  def("setlabelfont", function(a) { turtle.fontname = sexpr(a); });
 
   // Not Supported: textscreen
   // Not Supported: fullscreen

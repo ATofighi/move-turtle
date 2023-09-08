@@ -135,6 +135,15 @@ function initStorage(loadhook) {
   };
 }
 
+var myEvent = window.attachEvent || window.addEventListener;
+var chkevent = window.attachEvent ? 'onbeforeunload' : 'beforeunload'; /// make IE7, IE8 compitable
+
+            myEvent(chkevent, function(e) { // For >=IE7, Chrome, Firefox
+                var confirmationMessage = 'Are you sure to leave the page?';  // a space
+                (e || window.event).returnValue = confirmationMessage;
+                return confirmationMessage;
+            });
+
 //
 // Command history
 //
@@ -377,22 +386,22 @@ function initInput() {
     input.setFocus();
   });
 
-  $('#toggle').addEventListener('click', function() {
-    var v = input.getValue();
-    document.body.classList.toggle('single');
-    document.body.classList.toggle('multi');
-    if (!isMulti()) {
-      v = v.replace(/\n/g, '  ');
-    } else {
-      v = v.replace(/\s\s(\s*)/g, '\n$1');
-    }
-    input.setValue(v);
-    input.setFocus();
-  });
+  // $('#toggle').addEventListener('click', function() {
+  //   var v = input.getValue();
+  //   document.body.classList.toggle('single');
+  //   document.body.classList.toggle('multi');
+  //   if (!isMulti()) {
+  //     v = v.replace(/\n/g, '  ');
+  //   } else {
+  //     v = v.replace(/\s\s(\s*)/g, '\n$1');
+  //   }
+  //   input.setValue(v);
+  //   input.setFocus();
+  // });
 
   $('#run').addEventListener('click', run);
   $('#stop').addEventListener('click', stop);
-  $('#clear').addEventListener('click', clear);
+  // $('#clear').addEventListener('click', clear);
 
   window.addEventListener('message', function(e) {
     if ('example' in e.data) {
@@ -447,11 +456,11 @@ function initInput() {
 //
 (function() {
   savehook = hook(savehook, function(name, def) {
-    var parent = $('#library .snippets');
-    if (def)
-      insertSnippet(def, parent, name);
-    else
-      removeSnippet(parent, name);
+    // var parent = $('#library .snippets');
+    // if (def)
+    //   insertSnippet(def, parent, name);
+    // else
+    //   removeSnippet(parent, name);
   });
 
   historyhook = hook(historyhook, function(entry) {
@@ -626,26 +635,26 @@ window.addEventListener('DOMContentLoaded', function() {
     return true;
   }
 
-  $('#savelibrary').addEventListener('click', function() {
-    var library = logo.procdefs().replace('\n', '\r\n');
-    var url = 'data:text/plain,' + encodeURIComponent(library);
-    if (!saveDataAs(url, 'logo_library.txt'))
-      Dialog.alert("Sorry, not supported by your browser");
-  });
-  $('#screenshot').addEventListener('click', function() {
-    var canvas = document.querySelector('#sandbox');
-    var url = canvas.toDataURL('image/png');
-    if (!saveDataAs(url, 'logo_drawing.png'))
-      Dialog.alert("Sorry, not supported by your browser");
-  });
+  // $('#savelibrary').addEventListener('click', function() {
+  //   var library = logo.procdefs().replace('\n', '\r\n');
+  //   var url = 'data:text/plain,' + encodeURIComponent(library);
+  //   if (!saveDataAs(url, 'logo_library.txt'))
+  //     Dialog.alert("Sorry, not supported by your browser");
+  // });
+  // $('#screenshot').addEventListener('click', function() {
+  //   var canvas = document.querySelector('#sandbox');
+  //   var url = canvas.toDataURL('image/png');
+  //   if (!saveDataAs(url, 'logo_drawing.png'))
+  //     Dialog.alert("Sorry, not supported by your browser");
+  // });
   $('#clearhistory').addEventListener('click', function() {
     if (!confirm(__('Clear history: Are you sure?'))) return;
     clearhistoryhook();
   });
-  $('#clearlibrary').addEventListener('click', function() {
-    if (!confirm(__('Clear library: Are you sure?'))) return;
-    logo.run('erall');
-  });
+  // $('#clearlibrary').addEventListener('click', function() {
+  //   if (!confirm(__('Clear library: Are you sure?'))) return;
+  //   logo.run('erall');
+  // });
 
   // Default translation replacement function is a no-op.
   var __ = function(s) { return s; };
@@ -743,28 +752,6 @@ window.addEventListener('DOMContentLoaded', function() {
   }());
 
   // Populate languages selection list
-  fetch('l10n/languages.txt')
-    .then(function(response) {
-      if (!response.ok) throw Error(response.statusText);
-      return response.text();
-    })
-    .then(function(text) {
-      var select = $('#select-lang');
-      text.split(/\r?\n/g).forEach(function(entry) {
-        var match = /^(\w+)\s+(.*)$/.exec(entry);
-        if (!match) return;
-        var opt = document.createElement('option');
-        opt.value = match[1];
-        opt.textContent = match[2];
-        select.appendChild(opt);
-      });
-      select.value = document.body.lang;
-      select.addEventListener('change', function() {
-        var url = String(document.location);
-        url = url.replace(/[?#].*/, '');
-        document.location = url + '?lang=' + select.value;
-      });
-    });
 
   localizationComplete.then(initInput);
 
