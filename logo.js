@@ -1411,19 +1411,6 @@ function LogoInterpreter(turtle, stream, savehook)
   }
 
 
-  def("def", function(list) {
-
-    var name = sexpr(list);
-    var proc = this.routines.get(name);
-    if (!proc)
-      throw err("{_PROC_}: Don't know how to {name:U}", { name: name }, ERRORS.BAD_PROC);
-    if (!proc.inputs) {
-      throw err("{_PROC_}: Can't show definition of primitive {name:U}", { name: name },
-               ERRORS.IS_PRIMITIVE);
-    }
-
-    return this.definition(name, proc);
-  });
 
 
   //----------------------------------------------------------------------
@@ -1441,21 +1428,6 @@ function LogoInterpreter(turtle, stream, savehook)
   //
 
 
-  function item(index, thing) {
-    switch (Type(thing)) {
-    case 'list':
-      if (index < 1 || index > thing.length)
-        throw err("{_PROC_}: Index out of bounds", ERRORS.BAD_INPUT);
-      return thing[index - 1];
-    case 'array':
-      return thing.item(index);
-    default:
-      thing = sexpr(thing);
-      if (index < 1 || index > thing.length)
-        throw err("{_PROC_}: Index out of bounds", ERRORS.BAD_INPUT);
-      return thing.charAt(index - 1);
-    }
-  }
 
 
   //
@@ -1614,29 +1586,29 @@ function LogoInterpreter(turtle, stream, savehook)
   def("int", function(a) { return truncate(aexpr(a)); });
   def("round", function(a) { return Math.round(aexpr(a)); });
 
-  def("iseq", function(a, b) {
-    a = truncate(aexpr(a));
-    b = truncate(aexpr(b));
-    var step = (a < b) ? 1 : -1;
-    var list = [];
-    for (var i = a; (step > 0) ? (i <= b) : (i >= b); i += step) {
-      list.push(i);
-    }
-    return list;
-  });
+  // def("iseq", function(a, b) {
+  //   a = truncate(aexpr(a));
+  //   b = truncate(aexpr(b));
+  //   var step = (a < b) ? 1 : -1;
+  //   var list = [];
+  //   for (var i = a; (step > 0) ? (i <= b) : (i >= b); i += step) {
+  //     list.push(i);
+  //   }
+  //   return list;
+  // });
 
 
-  def("rseq", function(from, to, count) {
-    from = aexpr(from);
-    to = aexpr(to);
-    count = truncate(aexpr(count));
-    var step = (to - from) / (count - 1);
-    var list = [];
-    for (var i = from; (step > 0) ? (i <= to) : (i >= to); i += step) {
-      list.push(i);
-    }
-    return list;
-  });
+  // def("rseq", function(from, to, count) {
+  //   from = aexpr(from);
+  //   to = aexpr(to);
+  //   count = truncate(aexpr(count));
+  //   var step = (to - from) / (count - 1);
+  //   var list = [];
+  //   for (var i = from; (step > 0) ? (i <= to) : (i >= to); i += step) {
+  //     list.push(i);
+  //   }
+  //   return list;
+  // });
 
   // 4.2 Numeric Predicates
 
@@ -1665,16 +1637,16 @@ function LogoInterpreter(turtle, stream, savehook)
 
   // 4.4 Print Formatting
 
-  def("form", function(num, width, precision) {
-    num = aexpr(num);
-    width = aexpr(width);
-    precision = aexpr(precision);
+  // def("form", function(num, width, precision) {
+  //   num = aexpr(num);
+  //   width = aexpr(width);
+  //   precision = aexpr(precision);
 
-    var str = num.toFixed(precision);
-    if (str.length < width)
-      str = Array(1 + width - str.length).join(' ') + str;
-    return str;
-  });
+  //   var str = num.toFixed(precision);
+  //   if (str.length < width)
+  //     str = Array(1 + width - str.length).join(' ') + str;
+  //   return str;
+  // });
 
   // 4.5 Bitwise Operations
 
@@ -1715,42 +1687,42 @@ function LogoInterpreter(turtle, stream, savehook)
   def("true", function() { return 1; });
   def("false", function() { return 0; });
 
-  def("and", function(a, b) {
-    var args = Array.from(arguments);
-    return booleanReduce(args, function(value) {return value;}, 1);
-  }, {noeval: true, minimum: 0, maximum: -1});
+  // def("and", function(a, b) {
+  //   var args = Array.from(arguments);
+  //   return booleanReduce(args, function(value) {return value;}, 1);
+  // }, {noeval: true, minimum: 0, maximum: -1});
 
-  def("or", function(a, b) {
-    var args = Array.from(arguments);
-    return booleanReduce(args, function(value) {return !value;}, 0);
-  }, {noeval: true, minimum: 0, maximum: -1});
+  // def("or", function(a, b) {
+  //   var args = Array.from(arguments);
+  //   return booleanReduce(args, function(value) {return !value;}, 0);
+  // }, {noeval: true, minimum: 0, maximum: -1});
 
-  function booleanReduce(args, test, value) {
-    return promiseLoop(function(loop, resolve, reject) {
-      if (!args.length) {
-        resolve(value);
-        return;
-      }
-      Promise.resolve(args.shift()())
-        .then(function(result) {
-          if (!test(result)) {
-            resolve(result);
-            return;
-          }
-          value = result;
-          loop();
-        });
-    });
-  }
+  // function booleanReduce(args, test, value) {
+  //   return promiseLoop(function(loop, resolve, reject) {
+  //     if (!args.length) {
+  //       resolve(value);
+  //       return;
+  //     }
+  //     Promise.resolve(args.shift()())
+  //       .then(function(result) {
+  //         if (!test(result)) {
+  //           resolve(result);
+  //           return;
+  //         }
+  //         value = result;
+  //         loop();
+  //       });
+  //   });
+  // }
 
-  def("xor", function(a, b) {
-    return Array.from(arguments).map(aexpr)
-      .reduce(function(a, b) { return Boolean(a) !== Boolean(b); }, 0) ? 1 : 0;
-  }, {minimum: 0, maximum: -1});
+  // def("xor", function(a, b) {
+  //   return Array.from(arguments).map(aexpr)
+  //     .reduce(function(a, b) { return Boolean(a) !== Boolean(b); }, 0) ? 1 : 0;
+  // }, {minimum: 0, maximum: -1});
 
-  def("not", function(a) {
-    return !aexpr(a) ? 1 : 0;
-  });
+  // def("not", function(a) {
+  //   return !aexpr(a) ? 1 : 0;
+  // });
 
   //----------------------------------------------------------------------
   //
@@ -1764,14 +1736,14 @@ function LogoInterpreter(turtle, stream, savehook)
   def(["lt"], function(a) { return turtle.turn(-aexpr(a)); });
   def(["rt"], function(a) { return turtle.turn(aexpr(a)); });
 
-  // Left arrow:
-  def(["\u2190"], function() { return turtle.turn(-15); });
-  // Right arrow:
-  def(["\u2192"], function() { return turtle.turn(15); });
-  // Up arrow:
-  def(["\u2191"], function() { return turtle.move(10); });
-  // Down arrow:
-  def(["\u2193"], function() { return turtle.move(-10); });
+  // // Left arrow:
+  // def(["\u2190"], function() { return turtle.turn(-15); });
+  // // Right arrow:
+  // def(["\u2192"], function() { return turtle.turn(15); });
+  // // Up arrow:
+  // def(["\u2191"], function() { return turtle.move(10); });
+  // // Down arrow:
+  // def(["\u2193"], function() { return turtle.move(-10); });
 
 
   def("setpos", function(l) {
@@ -1782,7 +1754,7 @@ function LogoInterpreter(turtle, stream, savehook)
   def("setxy", function(x, y) { turtle.position = [aexpr(x), aexpr(y)]; });
   def("setx", function(x) { turtle.position = [aexpr(x), undefined]; });
   def("sety", function(y) { turtle.position = [undefined, aexpr(y)]; });
-  def(["setheading", "seth"], function(a) { turtle.heading = aexpr(a); });
+  def(["seth"], function(a) { turtle.heading = aexpr(a); });
 
   def("home", function() { return turtle.home(); });
 
@@ -1796,25 +1768,19 @@ function LogoInterpreter(turtle, stream, savehook)
   def("xcor", function() { return turtle.position[0]; });
   def("ycor", function() { return turtle.position[1]; });
   def("heading", function() { return turtle.heading; });
-  def("towards", function(l) {
-    l = lexpr(l);
-    if (l.length !== 2) throw err("{_PROC_}: Expected list of length 2", ERRORS.BAD_INPUT);
-    return turtle.towards(aexpr(l[0]), aexpr(l[1]));
-  });
-  def("scrunch", function() { return turtle.scrunch; });
 
   //
   // 6.3 Turtle and Window Control
   //
 
-  def(["showturtle", "st"], function() { turtle.visible = true; });
-  def(["hideturtle", "ht"], function() { turtle.visible = false; });
+  def(["st"], function() { turtle.visible = true; });
+  def(["ht"], function() { turtle.visible = false; });
   def("clean", function() { turtle.clear(); });
-  def(["clearscreen", "cs"], function() { turtle.clearscreen(); });
+  def(["cs"], function() { turtle.clearscreen(); });
 
-  def("wrap", function() { turtle.turtlemode = 'wrap'; });
-  def("window", function() { turtle.turtlemode = 'window'; });
-  def("fence", function() { turtle.turtlemode = 'fence'; });
+  // def("wrap", function() { turtle.turtlemode = 'wrap'; });
+  // def("window", function() { turtle.turtlemode = 'window'; });
+  // def("fence", function() { turtle.turtlemode = 'fence'; });
 
   def("fill", function() { turtle.fill(); });
 
@@ -1833,13 +1799,6 @@ function LogoInterpreter(turtle, stream, savehook)
   // Not Supported: fullscreen
   // Not Supported: splitscreen
 
-  def("setscrunch", function(sx, sy) {
-    sx = aexpr(sx);
-    sy = aexpr(sy);
-    if (!isFinite(sx) || sx === 0 || !isFinite(sy) || sy === 0)
-      throw err("{_PROC_}: Expected non-zero values", ERRORS.BAD_INPUT);
-    turtle.scrunch = [sx, sy];
-  });
 
   // Not Supported: refresh
   // Not Supported: norefresh
@@ -1848,33 +1807,33 @@ function LogoInterpreter(turtle, stream, savehook)
   // 6.4 Turtle and Window Queries
   //
 
-  def(["shownp", "shown?"], function() {
-    return turtle.visible ? 1 : 0;
-  });
+  // def(["shown?"], function() {
+  //   return turtle.visible ? 1 : 0;
+  // });
 
   // Not Supported: screenmode
 
-  def("turtlemode", function() {
-    return turtle.turtlemode.toUpperCase();
-  });
+  // def("turtlemode", function() {
+  //   return turtle.turtlemode.toUpperCase();
+  // });
 
-  def("labelsize", function() {
-    return [turtle.fontsize, turtle.fontsize];
-  });
+  // def("labelsize", function() {
+  //   return [turtle.fontsize, turtle.fontsize];
+  // });
 
-  def("labelfont", function() {
-    return turtle.fontname;
-  });
+  // def("labelfont", function() {
+  //   return turtle.fontname;
+  // });
 
   //
   // 6.5 Pen and Background Control
   //
-  def(["pendown", "pd"], function() { turtle.pendown = true; });
-  def(["penup", "pu"], function() { turtle.pendown = false; });
+  def(["pd"], function() { turtle.pendown = true; });
+  def(["pu"], function() { turtle.pendown = false; });
 
-  def(["penpaint", "ppt"], function() { turtle.penmode = 'paint'; });
-  def(["penerase", "pe"], function() { turtle.penmode = 'erase'; });
-  def(["penreverse", "px"], function() { turtle.penmode = 'reverse'; });
+  def(["ppt"], function() { turtle.penmode = 'paint'; });
+  def(["pe"], function() { turtle.penmode = 'erase'; });
+  def(["px"], function() { turtle.penmode = 'reverse'; });
 
   // To handle additional color names (localizations, etc):
   // logo.colorAlias = function(name) {
@@ -1942,32 +1901,10 @@ function LogoInterpreter(turtle, stream, savehook)
   // 6.6 Pen Queries
   //
 
-  def(["pendownp", "pendown?"], function() {
-    return turtle.pendown ? 1 : 0;
-  });
-
-  def("penmode", function() {
-    return turtle.penmode.toUpperCase();
-  });
-
-  def(["pencolor", "pc"], function() {
-    return turtle.color;
-  });
-
-  def("palette", function(colornumber) {
-    return PALETTE[aexpr(colornumber)];
-  });
-
-  def("pensize", function() {
-    return [turtle.penwidth, turtle.penwidth];
-  });
 
   // Not Supported: pen
 
-  def(["background", "bg", "getscreencolor", "getsc"], function() {
-    return turtle.bgcolor;
-  });
-
+ 
   // 6.7 Saving and Loading Pictures
 
   // Not Supported: savepict
@@ -2003,344 +1940,302 @@ function LogoInterpreter(turtle, stream, savehook)
   //----------------------------------------------------------------------
   // 7.1 Procedure Definition
 
-  def("define", function(name, list) {
-    name = sexpr(name);
-    list = lexpr(list);
-    if (list.length != 2)
-      throw err("{_PROC_}: Expected list of length 2", ERRORS.BAD_INPUT);
+  // def("define", function(name, list) {
+  //   name = sexpr(name);
+  //   list = lexpr(list);
+  //   if (list.length != 2)
+  //     throw err("{_PROC_}: Expected list of length 2", ERRORS.BAD_INPUT);
 
-    var inputs = [];
-    var optional_inputs = [];
-    var rest = undefined;
-    var def = undefined;
-    var block = reparse(lexpr(list[1]));
+  //   var inputs = [];
+  //   var optional_inputs = [];
+  //   var rest = undefined;
+  //   var def = undefined;
+  //   var block = reparse(lexpr(list[1]));
 
-    var ins = lexpr(list[0]);
-    var REQUIRED = 0, OPTIONAL = 1, REST = 2, DEFAULT = 3, ERROR = 4;
-    var state = REQUIRED;
-    while (ins.length) {
-      var atom = ins.shift();
-      if (state === REQUIRED) {
-        if (Type(atom) === 'word') {
-          inputs.push(atom);
-          continue;
-        }
-        state = OPTIONAL;
-      }
+  //   var ins = lexpr(list[0]);
+  //   var REQUIRED = 0, OPTIONAL = 1, REST = 2, DEFAULT = 3, ERROR = 4;
+  //   var state = REQUIRED;
+  //   while (ins.length) {
+  //     var atom = ins.shift();
+  //     if (state === REQUIRED) {
+  //       if (Type(atom) === 'word') {
+  //         inputs.push(atom);
+  //         continue;
+  //       }
+  //       state = OPTIONAL;
+  //     }
 
-      if (state === OPTIONAL) {
-        if (Type(atom) === 'list' && atom.length > 1 && Type(atom[0]) === 'word') {
-          optional_inputs.push([atom.shift(), atom]);
-          continue;
-        }
-        state = REST;
-      }
+  //     if (state === OPTIONAL) {
+  //       if (Type(atom) === 'list' && atom.length > 1 && Type(atom[0]) === 'word') {
+  //         optional_inputs.push([atom.shift(), atom]);
+  //         continue;
+  //       }
+  //       state = REST;
+  //     }
 
-      if (state === REST) {
-        state = DEFAULT;
-        if (Type(atom) === 'list' && atom.length === 1 && Type(atom[0]) === 'word') {
-          rest = atom[0];
-          continue;
-        }
-      }
+  //     if (state === REST) {
+  //       state = DEFAULT;
+  //       if (Type(atom) === 'list' && atom.length === 1 && Type(atom[0]) === 'word') {
+  //         rest = atom[0];
+  //         continue;
+  //       }
+  //     }
 
-      if (state === DEFAULT) {
-        state = ERROR;
-        if (Type(atom) === 'word' && isNumber(atom)) {
-          def = parseFloat(atom);
-          continue;
-        }
-      }
+  //     if (state === DEFAULT) {
+  //       state = ERROR;
+  //       if (Type(atom) === 'word' && isNumber(atom)) {
+  //         def = parseFloat(atom);
+  //         continue;
+  //       }
+  //     }
 
-      throw err("{_PROC_}: Unexpected inputs", ERRORS.BAD_INPUT);
-    }
+  //     throw err("{_PROC_}: Unexpected inputs", ERRORS.BAD_INPUT);
+  //   }
 
-    defineProc(name, inputs, optional_inputs, rest, def, block);
-  });
+  //   defineProc(name, inputs, optional_inputs, rest, def, block);
+  // });
 
-  def("text", function(name) {
-    var proc = this.routines.get(sexpr(name));
-    if (!proc)
-      throw err("{_PROC_}: Don't know how to {name:U}", { name: name }, ERRORS.BAD_PROC);
-    if (!proc.inputs) {
-      throw err("{_PROC_}: Can't show definition of primitive {name:U}", { name: name },
-               ERRORS.IS_PRIMITIVE);
-    }
-
-    var inputs = proc.inputs.concat(proc.optional_inputs);
-    if (proc.rest)
-      inputs.push([proc.rest]);
-    if (proc.def !== undefined)
-      inputs.push(proc.def);
-    return [inputs, proc.block];
-  });
 
   // Not Supported: fulltext
 
-  def("copydef", function(newname, oldname) {
-
-    newname = sexpr(newname);
-    oldname = sexpr(oldname);
-
-    if (!this.routines.has(oldname)) {
-      throw err("{_PROC_}: Don't know how to {name:U}", { name: oldname }, ERRORS.BAD_PROC);
-    }
-
-    if (this.routines.has(newname)) {
-      if (this.routines.get(newname).special) {
-        throw err("{_PROC_}: Can't overwrite special {name:U}", { name: newname },
-                  ERRORS.BAD_INPUT);
-      }
-      if (this.routines.get(newname).primitive && !maybegetvar("redefp")) {
-        throw err("{_PROC_}: Can't overwrite primitives unless REDEFP is TRUE",
-                 ERRORS.BAD_INPUT);
-      }
-    }
-
-    this.routines.set(newname, this.routines.get(oldname));
-    // TODO: This is broken if copying a built-in, so disable for now
-    //saveproc(newname, this.definition(newname, this.routines.get(newname)));
-  });
-
-
   // 7.2 Variable Definition
 
-  def("make", function(varname, value) {
-    setvar(sexpr(varname), value);
-  });
+  // def("make", function(varname, value) {
+  //   setvar(sexpr(varname), value);
+  // });
 
-  def("name", function(value, varname) {
-    setvar(sexpr(varname), value);
-  });
+  // def("name", function(value, varname) {
+  //   setvar(sexpr(varname), value);
+  // });
 
-  def("local", function(varname) {
-    Array.from(arguments).forEach(function(name) { local(sexpr(name)); });
-  }, {maximum: -1});
+  // def("local", function(varname) {
+  //   Array.from(arguments).forEach(function(name) { local(sexpr(name)); });
+  // }, {maximum: -1});
 
-  def("localmake", function(varname, value) {
-    setlocal(sexpr(varname), value);
-  });
+  // def("localmake", function(varname, value) {
+  //   setlocal(sexpr(varname), value);
+  // });
 
-  def("thing", function(varname) {
-    return getvar(sexpr(varname));
-  });
+  // def("thing", function(varname) {
+  //   return getvar(sexpr(varname));
+  // });
 
-  def("global", function(varname) {
-    var globalscope = this.scopes[0];
-    Array.from(arguments).forEach(function(name) {
-      globalscope.set(sexpr(name), {value: undefined}); });
-  }, {maximum: -1});
+  // def("global", function(varname) {
+  //   var globalscope = this.scopes[0];
+  //   Array.from(arguments).forEach(function(name) {
+  //     globalscope.set(sexpr(name), {value: undefined}); });
+  // }, {maximum: -1});
 
   //
   // 7.3 Property Lists
   //
 
-  def("pprop", function(plistname, propname, value) {
-    plistname = sexpr(plistname);
-    propname = sexpr(propname);
-    var plist = this.plists.get(plistname);
-    if (!plist) {
-      plist = new StringMap(true);
-      this.plists.set(plistname, plist);
-    }
-    plist.set(propname, value);
-  });
+  // def("pprop", function(plistname, propname, value) {
+  //   plistname = sexpr(plistname);
+  //   propname = sexpr(propname);
+  //   var plist = this.plists.get(plistname);
+  //   if (!plist) {
+  //     plist = new StringMap(true);
+  //     this.plists.set(plistname, plist);
+  //   }
+  //   plist.set(propname, value);
+  // });
 
-  def("gprop", function(plistname, propname) {
-    plistname = sexpr(plistname);
-    propname = sexpr(propname);
-    var plist = this.plists.get(plistname);
-    if (!plist || !plist.has(propname))
-      return [];
-    return plist.get(propname);
-  });
+  // def("gprop", function(plistname, propname) {
+  //   plistname = sexpr(plistname);
+  //   propname = sexpr(propname);
+  //   var plist = this.plists.get(plistname);
+  //   if (!plist || !plist.has(propname))
+  //     return [];
+  //   return plist.get(propname);
+  // });
 
-  def("remprop", function(plistname, propname) {
-    plistname = sexpr(plistname);
-    propname = sexpr(propname);
-    var plist = this.plists.get(plistname);
-    if (plist) {
-      plist['delete'](propname);
-      if (plist.empty()) {
-        // TODO: Do this? Loses state, e.g. unburies if buried
-        this.plists['delete'](plistname);
-      }
-    }
-  });
+  // def("remprop", function(plistname, propname) {
+  //   plistname = sexpr(plistname);
+  //   propname = sexpr(propname);
+  //   var plist = this.plists.get(plistname);
+  //   if (plist) {
+  //     plist['delete'](propname);
+  //     if (plist.empty()) {
+  //       // TODO: Do this? Loses state, e.g. unburies if buried
+  //       this.plists['delete'](plistname);
+  //     }
+  //   }
+  // });
 
-  def("plist", function(plistname) {
-    plistname = sexpr(plistname);
-    var plist = this.plists.get(plistname);
-    if (!plist)
-      return [];
+  // def("plist", function(plistname) {
+  //   plistname = sexpr(plistname);
+  //   var plist = this.plists.get(plistname);
+  //   if (!plist)
+  //     return [];
 
-    var result = [];
-    plist.forEach(function(key, value) {
-      result.push(key);
-      result.push(copy(value));
-    });
-    return result;
-  });
+  //   var result = [];
+  //   plist.forEach(function(key, value) {
+  //     result.push(key);
+  //     result.push(copy(value));
+  //   });
+  //   return result;
+  // });
 
   //
   // 7.4 Workspace Predicates
   //
 
-  def(["procedurep", "procedure?"], function(name) {
-    name = sexpr(name);
-    return this.routines.has(name) ? 1 : 0;
-  });
+  // def(["procedurep", "procedure?"], function(name) {
+  //   name = sexpr(name);
+  //   return this.routines.has(name) ? 1 : 0;
+  // });
 
-  def(["primitivep", "primitive?"], function(name) {
-    name = sexpr(name);
-    return (this.routines.has(name) &&
-            this.routines.get(name).primitive) ? 1 : 0;
-  });
+  // def(["primitivep", "primitive?"], function(name) {
+  //   name = sexpr(name);
+  //   return (this.routines.has(name) &&
+  //           this.routines.get(name).primitive) ? 1 : 0;
+  // });
 
-  def(["definedp", "defined?"], function(name) {
-    name = sexpr(name);
-    return (this.routines.has(name) &&
-            !this.routines.get(name).primitive) ? 1 : 0;
-  });
+  // def(["definedp", "defined?"], function(name) {
+  //   name = sexpr(name);
+  //   return (this.routines.has(name) &&
+  //           !this.routines.get(name).primitive) ? 1 : 0;
+  // });
 
-  def(["namep", "name?"], function(varname) {
-    try {
-      return getvar(sexpr(varname)) !== undefined ? 1 : 0;
-    } catch (e) {
-      return 0;
-    }
-  });
+  // def(["namep", "name?"], function(varname) {
+  //   try {
+  //     return getvar(sexpr(varname)) !== undefined ? 1 : 0;
+  //   } catch (e) {
+  //     return 0;
+  //   }
+  // });
 
-  def(["plistp", "plist?"], function(plistname) {
-    plistname = sexpr(plistname);
-    return this.plists.has(plistname) ? 1 : 0;
-  });
+  // def(["plistp", "plist?"], function(plistname) {
+  //   plistname = sexpr(plistname);
+  //   return this.plists.has(plistname) ? 1 : 0;
+  // });
 
-  //
-  // 7.5 Workspace Queries
-  //
+  // //
+  // // 7.5 Workspace Queries
+  // //
 
-  def("contents", function() {
-    return [
-      this.routines.keys().filter(function(x) {
-        return !this.routines.get(x).primitive && !this.routines.get(x).buried;
-      }.bind(this)),
-      this.scopes.reduce(
-        function(list, scope) {
-          return list.concat(scope.keys().filter(function(x) { return !scope.get(x).buried; })); },
-        []),
-      this.plists.keys().filter(function(x) {
-        return !this.plists.get(x).buried;
-      }.bind(this))
-    ];
-  });
+  // def("contents", function() {
+  //   return [
+  //     this.routines.keys().filter(function(x) {
+  //       return !this.routines.get(x).primitive && !this.routines.get(x).buried;
+  //     }.bind(this)),
+  //     this.scopes.reduce(
+  //       function(list, scope) {
+  //         return list.concat(scope.keys().filter(function(x) { return !scope.get(x).buried; })); },
+  //       []),
+  //     this.plists.keys().filter(function(x) {
+  //       return !this.plists.get(x).buried;
+  //     }.bind(this))
+  //   ];
+  // });
 
-  def("buried", function() {
-    return [
-      this.routines.keys().filter(function(x) {
-        return !this.routines.get(x).primitive && this.routines.get(x).buried; }.bind(this)),
-      this.scopes.reduce(
-        function(list, scope) {
-          return list.concat(scope.keys().filter(function(x) { return scope.get(x).buried; })); },
-        []),
-      this.plists.keys().filter(function(x) { return this.plists.get(x).buried; }.bind(this))
-    ];
-  });
+  // def("buried", function() {
+  //   return [
+  //     this.routines.keys().filter(function(x) {
+  //       return !this.routines.get(x).primitive && this.routines.get(x).buried; }.bind(this)),
+  //     this.scopes.reduce(
+  //       function(list, scope) {
+  //         return list.concat(scope.keys().filter(function(x) { return scope.get(x).buried; })); },
+  //       []),
+  //     this.plists.keys().filter(function(x) { return this.plists.get(x).buried; }.bind(this))
+  //   ];
+  // });
 
-  def("traced", function() {
-    return [
-      this.routines.keys().filter(function(x) {
-        return !this.routines.get(x).primitive && this.routines.get(x).traced; }.bind(this)),
-      this.scopes.reduce(
-        function(list, scope) {
-          return list.concat(scope.keys().filter(function(x) { return scope.get(x).traced; })); },
-        []),
-      this.plists.keys().filter(function(x) { return this.plists.get(x).traced; }.bind(this))
-    ];
-  });
+  // def("traced", function() {
+  //   return [
+  //     this.routines.keys().filter(function(x) {
+  //       return !this.routines.get(x).primitive && this.routines.get(x).traced; }.bind(this)),
+  //     this.scopes.reduce(
+  //       function(list, scope) {
+  //         return list.concat(scope.keys().filter(function(x) { return scope.get(x).traced; })); },
+  //       []),
+  //     this.plists.keys().filter(function(x) { return this.plists.get(x).traced; }.bind(this))
+  //   ];
+  // });
 
-  def(["stepped"], function() {
-    return [
-      this.routines.keys().filter(function(x) {
-        return !this.routines.get(x).primitive && this.routines.get(x).stepped; }.bind(this)),
-      this.scopes.reduce(
-        function(list, scope) {
-          return list.concat(scope.keys().filter(function(x) { return scope.get(x).stepped; })); },
-        []),
-      this.plists.keys().filter(function(x) { return this.plists.get(x).stepped; }.bind(this))
-    ];
-  });
+  // def(["stepped"], function() {
+  //   return [
+  //     this.routines.keys().filter(function(x) {
+  //       return !this.routines.get(x).primitive && this.routines.get(x).stepped; }.bind(this)),
+  //     this.scopes.reduce(
+  //       function(list, scope) {
+  //         return list.concat(scope.keys().filter(function(x) { return scope.get(x).stepped; })); },
+  //       []),
+  //     this.plists.keys().filter(function(x) { return this.plists.get(x).stepped; }.bind(this))
+  //   ];
+  // });
 
-  def("procedures", function() {
-    return this.routines.keys().filter(function(x) {
-      return !this.routines.get(x).primitive && !this.routines.get(x).buried;
-    }.bind(this));
-  });
+  // def("procedures", function() {
+  //   return this.routines.keys().filter(function(x) {
+  //     return !this.routines.get(x).primitive && !this.routines.get(x).buried;
+  //   }.bind(this));
+  // });
 
-  def("primitives", function() {
-    return this.routines.keys().filter(function(x) {
-      return this.routines.get(x).primitive & !this.routines.get(x).buried;
-    }.bind(this));
-  });
+  // def("primitives", function() {
+  //   return this.routines.keys().filter(function(x) {
+  //     return this.routines.get(x).primitive & !this.routines.get(x).buried;
+  //   }.bind(this));
+  // });
 
-  def("globals", function() {
-    var globalscope = this.scopes[0];
-    return globalscope.keys().filter(function(x) {
-      return !globalscope.get(x).buried;
-    });
-  });
+  // def("globals", function() {
+  //   var globalscope = this.scopes[0];
+  //   return globalscope.keys().filter(function(x) {
+  //     return !globalscope.get(x).buried;
+  //   });
+  // });
 
-  def("names", function() {
-    return [
-      [],
-      this.scopes.reduce(function(list, scope) {
-        return list.concat(scope.keys().filter(function(x) {
-          return !scope.get(x).buried; })); }, [])
-    ];
-  });
+  // def("names", function() {
+  //   return [
+  //     [],
+  //     this.scopes.reduce(function(list, scope) {
+  //       return list.concat(scope.keys().filter(function(x) {
+  //         return !scope.get(x).buried; })); }, [])
+  //   ];
+  // });
 
-  def("plists", function() {
-    return [
-      [],
-      [],
-      this.plists.keys().filter(function(x) {
-        return !this.plists.get(x).buried;
-      }.bind(this))
-    ];
-  });
+  // def("plists", function() {
+  //   return [
+  //     [],
+  //     [],
+  //     this.plists.keys().filter(function(x) {
+  //       return !this.plists.get(x).buried;
+  //     }.bind(this))
+  //   ];
+  // });
 
-  def("namelist", function(varname) {
-    if (Type(varname) === 'list')
-      varname = lexpr(varname);
-    else
-      varname = [sexpr(varname)];
-    return [[], varname];
-  });
+  // def("namelist", function(varname) {
+  //   if (Type(varname) === 'list')
+  //     varname = lexpr(varname);
+  //   else
+  //     varname = [sexpr(varname)];
+  //   return [[], varname];
+  // });
 
-  def("pllist", function(plname) {
-    if (Type(plname) === 'list') {
-      plname = lexpr(plname);
-    } else {
-      plname = [sexpr(plname)];
-    }
-    return [[], [], plname];
-  });
+  // def("pllist", function(plname) {
+  //   if (Type(plname) === 'list') {
+  //     plname = lexpr(plname);
+  //   } else {
+  //     plname = [sexpr(plname)];
+  //   }
+  //   return [[], [], plname];
+  // });
 
 
-  def("arity", function(name) {
-    name = sexpr(name);
-    var proc = this.routines.get(name);
-    if (!proc)
-      throw err("{_PROC_}: Don't know how to {name:U}", { name: name }, ERRORS.BAD_PROC);
-    if (proc.special)
-      return [-1, -1, -1];
+  // def("arity", function(name) {
+  //   name = sexpr(name);
+  //   var proc = this.routines.get(name);
+  //   if (!proc)
+  //     throw err("{_PROC_}: Don't know how to {name:U}", { name: name }, ERRORS.BAD_PROC);
+  //   if (proc.special)
+  //     return [-1, -1, -1];
 
-    return [
-      proc.minimum,
-      proc.default,
-      proc.maximum
-    ];
-  });
+  //   return [
+  //     proc.minimum,
+  //     proc.default,
+  //     proc.maximum
+  //   ];
+  // });
 
   // Not Supported: nodes
 
@@ -2350,281 +2245,281 @@ function LogoInterpreter(turtle, stream, savehook)
   // 7.7 Workspace Control
   //
 
-  def("erase", function(list) {
-    list = lexpr(list);
+  // def("erase", function(list) {
+  //   list = lexpr(list);
 
-    // Delete procedures
-    if (list.length) {
-      var procs = lexpr(list.shift());
-      procs.forEach(function(name) {
-        name = sexpr(name);
-        if (this.routines.has(name)) {
-          if (this.routines.get(name).special)
-            throw err("Can't {_PROC_} special {name:U}", { name: name }, ERRORS.BAD_INPUT);
-          if (!this.routines.get(name).primitive || maybegetvar("redefp")) {
-            this.routines['delete'](name);
-            saveproc(name);
-          } else {
-            throw err("Can't {_PROC_} primitives unless REDEFP is TRUE", ERRORS.BAD_INPUT);
-          }
-        }
-      }.bind(this));
-    }
+  //   // Delete procedures
+  //   if (list.length) {
+  //     var procs = lexpr(list.shift());
+  //     procs.forEach(function(name) {
+  //       name = sexpr(name);
+  //       if (this.routines.has(name)) {
+  //         if (this.routines.get(name).special)
+  //           throw err("Can't {_PROC_} special {name:U}", { name: name }, ERRORS.BAD_INPUT);
+  //         if (!this.routines.get(name).primitive || maybegetvar("redefp")) {
+  //           this.routines['delete'](name);
+  //           saveproc(name);
+  //         } else {
+  //           throw err("Can't {_PROC_} primitives unless REDEFP is TRUE", ERRORS.BAD_INPUT);
+  //         }
+  //       }
+  //     }.bind(this));
+  //   }
 
-    // Delete variables
-    if (list.length) {
-      var vars = lexpr(list.shift());
-      // TODO: global only?
-      this.scopes.forEach(function(scope) {
-        vars.forEach(function(name) {
-          name = sexpr(name);
-          scope['delete'](name);
-        });
-      });
-    }
+  //   // Delete variables
+  //   if (list.length) {
+  //     var vars = lexpr(list.shift());
+  //     // TODO: global only?
+  //     this.scopes.forEach(function(scope) {
+  //       vars.forEach(function(name) {
+  //         name = sexpr(name);
+  //         scope['delete'](name);
+  //       });
+  //     });
+  //   }
 
-    // Delete property lists
-    if (list.length) {
-      var plists = lexpr(list.shift());
-      plists.forEach(function(name) {
-        name = sexpr(name);
-        this.plists['delete'](name);
-      }.bind(this));
-    }
-  });
+  //   // Delete property lists
+  //   if (list.length) {
+  //     var plists = lexpr(list.shift());
+  //     plists.forEach(function(name) {
+  //       name = sexpr(name);
+  //       this.plists['delete'](name);
+  //     }.bind(this));
+  //   }
+  // });
 
-  // TODO: lots of redundant logic here -- clean this up
-  def("erall", function() {
-    this.routines.keys().filter(function(x) {
-      return !this.routines.get(x).primitive && !this.routines.get(x).buried;
-    }.bind(this)).forEach(function(name) {
-      this.routines['delete'](name);
-      saveproc(name);
-    }.bind(this));
+  // // TODO: lots of redundant logic here -- clean this up
+  // def("erall", function() {
+  //   this.routines.keys().filter(function(x) {
+  //     return !this.routines.get(x).primitive && !this.routines.get(x).buried;
+  //   }.bind(this)).forEach(function(name) {
+  //     this.routines['delete'](name);
+  //     saveproc(name);
+  //   }.bind(this));
 
-    this.scopes.forEach(function(scope) {
-      scope.keys().filter(function(x) {
-        return !scope.get(x).buried;
-      }).forEach(function(name) {
-        scope['delete'](name);
-      });
-    });
+  //   this.scopes.forEach(function(scope) {
+  //     scope.keys().filter(function(x) {
+  //       return !scope.get(x).buried;
+  //     }).forEach(function(name) {
+  //       scope['delete'](name);
+  //     });
+  //   });
 
-    this.plists.keys().filter(function(x) {
-      return !this.plists.get(x).buried;
-    }.bind(this)).forEach(function(name) {
-      this.plists['delete'](name);
-    }.bind(this));
-  });
+  //   this.plists.keys().filter(function(x) {
+  //     return !this.plists.get(x).buried;
+  //   }.bind(this)).forEach(function(name) {
+  //     this.plists['delete'](name);
+  //   }.bind(this));
+  // });
 
-  def("erps", function() {
-    this.routines.keys().filter(function(x) {
-      return !this.routines.get(x).primitive && !this.routines.get(x).buried;
-    }.bind(this)).forEach(function(name) {
-      this.routines['delete'](name);
-      saveproc(name);
-    }.bind(this));
-  });
+  // def("erps", function() {
+  //   this.routines.keys().filter(function(x) {
+  //     return !this.routines.get(x).primitive && !this.routines.get(x).buried;
+  //   }.bind(this)).forEach(function(name) {
+  //     this.routines['delete'](name);
+  //     saveproc(name);
+  //   }.bind(this));
+  // });
 
-  def("erns", function() {
-    this.scopes.forEach(function(scope) {
-      scope.keys().filter(function(x) {
-        return !scope.get(x).buried;
-      }).forEach(function(name) {
-        scope['delete'](name);
-      });
-    });
-  });
+  // def("erns", function() {
+  //   this.scopes.forEach(function(scope) {
+  //     scope.keys().filter(function(x) {
+  //       return !scope.get(x).buried;
+  //     }).forEach(function(name) {
+  //       scope['delete'](name);
+  //     });
+  //   });
+  // });
 
-  def("erpls", function() {
-    this.plists.keys().filter(function(x) {
-      return !this.plists.get(x).buried;
-    }.bind(this)).forEach(function(key) {
-      this.plists['delete'](key);
-    }.bind(this));
-  });
+  // def("erpls", function() {
+  //   this.plists.keys().filter(function(x) {
+  //     return !this.plists.get(x).buried;
+  //   }.bind(this)).forEach(function(key) {
+  //     this.plists['delete'](key);
+  //   }.bind(this));
+  // });
 
-  def("ern", function(varname) {
-    var varnamelist;
-    if (Type(varname) === 'list')
-      varnamelist = lexpr(varname);
-    else
-      varnamelist = [sexpr(varname)];
+  // def("ern", function(varname) {
+  //   var varnamelist;
+  //   if (Type(varname) === 'list')
+  //     varnamelist = lexpr(varname);
+  //   else
+  //     varnamelist = [sexpr(varname)];
 
-    this.scopes.forEach(function(scope) {
-      varnamelist.forEach(function(name) {
-        name = sexpr(name);
-        scope['delete'](name);
-      });
-    });
-  });
+  //   this.scopes.forEach(function(scope) {
+  //     varnamelist.forEach(function(name) {
+  //       name = sexpr(name);
+  //       scope['delete'](name);
+  //     });
+  //   });
+  // });
 
-  def("erpl", function(plname) {
-    var plnamelist;
-    if (Type(plname) === 'list') {
-      plnamelist = lexpr(plname);
-    } else {
-      plnamelist = [sexpr(plname)];
-    }
+  // def("erpl", function(plname) {
+  //   var plnamelist;
+  //   if (Type(plname) === 'list') {
+  //     plnamelist = lexpr(plname);
+  //   } else {
+  //     plnamelist = [sexpr(plname)];
+  //   }
 
-    plnamelist.forEach(function(name) {
-      name = sexpr(name);
-      this.plists['delete'](name);
-    }.bind(this));
-  });
+  //   plnamelist.forEach(function(name) {
+  //     name = sexpr(name);
+  //     this.plists['delete'](name);
+  //   }.bind(this));
+  // });
 
-  def("bury", function(list) {
-    list = lexpr(list);
+  // def("bury", function(list) {
+  //   list = lexpr(list);
 
-    // Bury procedures
-    if (list.length) {
-      var procs = lexpr(list.shift());
-      procs.forEach(function(name) {
-        name = sexpr(name);
-        if (this.routines.has(name))
-          this.routines.get(name).buried = true;
-      }.bind(this));
-    }
+  //   // Bury procedures
+  //   if (list.length) {
+  //     var procs = lexpr(list.shift());
+  //     procs.forEach(function(name) {
+  //       name = sexpr(name);
+  //       if (this.routines.has(name))
+  //         this.routines.get(name).buried = true;
+  //     }.bind(this));
+  //   }
 
-    // Bury variables
-    if (list.length) {
-      var vars = lexpr(list.shift());
-      // TODO: global only?
-      this.scopes.forEach(function(scope) {
-        vars.forEach(function(name) {
-          name = sexpr(name);
-          if (scope.has(name))
-            scope.get(name).buried = true;
-        });
-      });
-    }
+  //   // Bury variables
+  //   if (list.length) {
+  //     var vars = lexpr(list.shift());
+  //     // TODO: global only?
+  //     this.scopes.forEach(function(scope) {
+  //       vars.forEach(function(name) {
+  //         name = sexpr(name);
+  //         if (scope.has(name))
+  //           scope.get(name).buried = true;
+  //       });
+  //     });
+  //   }
 
-    // Bury property lists
-    if (list.length) {
-      var plists = lexpr(list.shift());
-      plists.forEach(function(name) {
-        name = sexpr(name);
-        if (this.plists.has(name))
-          this.plists.get(name).buried = true;
-      }.bind(this));
-    }
-  });
+  //   // Bury property lists
+  //   if (list.length) {
+  //     var plists = lexpr(list.shift());
+  //     plists.forEach(function(name) {
+  //       name = sexpr(name);
+  //       if (this.plists.has(name))
+  //         this.plists.get(name).buried = true;
+  //     }.bind(this));
+  //   }
+  // });
 
-  def("buryall", function() {
-    this.routines.forEach(function(name, proc) {
-      proc.buried = true;
-    });
+  // def("buryall", function() {
+  //   this.routines.forEach(function(name, proc) {
+  //     proc.buried = true;
+  //   });
 
-    this.scopes.forEach(function(scope) {
-      scope.forEach(function(name, entry) {
-        entry.buried = true;
-      });
-    });
+  //   this.scopes.forEach(function(scope) {
+  //     scope.forEach(function(name, entry) {
+  //       entry.buried = true;
+  //     });
+  //   });
 
-    this.plists.forEach(function(name, entry) {
-      entry.buried = true;
-    });
-  });
+  //   this.plists.forEach(function(name, entry) {
+  //     entry.buried = true;
+  //   });
+  // });
 
-  def("buryname", function(varname) {
-    var bury = this.routines.get('bury');
-    var namelist = this.routines.get('namelist');
-    return bury.call(this, namelist.call(this, varname));
-  });
+  // def("buryname", function(varname) {
+  //   var bury = this.routines.get('bury');
+  //   var namelist = this.routines.get('namelist');
+  //   return bury.call(this, namelist.call(this, varname));
+  // });
 
-  def("unbury", function(list) {
-    list = lexpr(list);
+  // def("unbury", function(list) {
+  //   list = lexpr(list);
 
-    // Procedures
-    if (list.length) {
-      var procs = lexpr(list.shift());
-      procs.forEach(function(name) {
-        name = sexpr(name);
-        if (this.routines.has(name))
-          this.routines.get(name).buried = false;
-      }.bind(this));
-    }
+  //   // Procedures
+  //   if (list.length) {
+  //     var procs = lexpr(list.shift());
+  //     procs.forEach(function(name) {
+  //       name = sexpr(name);
+  //       if (this.routines.has(name))
+  //         this.routines.get(name).buried = false;
+  //     }.bind(this));
+  //   }
 
-    // Variables
-    if (list.length) {
-      var vars = lexpr(list.shift());
-      // TODO: global only?
-      this.scopes.forEach(function(scope) {
-        vars.forEach(function(name) {
-          name = sexpr(name);
-          if (scope.has(name))
-            scope.get(name).buried = false;
-        });
-      });
-    }
+  //   // Variables
+  //   if (list.length) {
+  //     var vars = lexpr(list.shift());
+  //     // TODO: global only?
+  //     this.scopes.forEach(function(scope) {
+  //       vars.forEach(function(name) {
+  //         name = sexpr(name);
+  //         if (scope.has(name))
+  //           scope.get(name).buried = false;
+  //       });
+  //     });
+  //   }
 
-    // Property lists
-    if (list.length) {
-      var plists = lexpr(list.shift());
-      plists.forEach(function(name) {
-        name = sexpr(name);
-        if (this.plists.has(name))
-          this.plists.get(name).buried = false;
-      }.bind(this));
-    }
-  });
+  //   // Property lists
+  //   if (list.length) {
+  //     var plists = lexpr(list.shift());
+  //     plists.forEach(function(name) {
+  //       name = sexpr(name);
+  //       if (this.plists.has(name))
+  //         this.plists.get(name).buried = false;
+  //     }.bind(this));
+  //   }
+  // });
 
-  def("unburyall", function() {
-    this.routines.forEach(function(name, proc) {
-      proc.buried = false;
-    });
+  // def("unburyall", function() {
+  //   this.routines.forEach(function(name, proc) {
+  //     proc.buried = false;
+  //   });
 
-    this.scopes.forEach(function(scope) {
-      scope.forEach(function(name, entry) {
-        entry.buried = false;
-      });
-    });
+  //   this.scopes.forEach(function(scope) {
+  //     scope.forEach(function(name, entry) {
+  //       entry.buried = false;
+  //     });
+  //   });
 
-    this.plists.forEach(function(name, entry) {
-      entry.buried = false;
-    });
-  });
+  //   this.plists.forEach(function(name, entry) {
+  //     entry.buried = false;
+  //   });
+  // });
 
-  def("unburyname", function(varname) {
-    var unbury = this.routines.get('unbury');
-    var namelist = this.routines.get('namelist');
-    return unbury.call(this, namelist.call(this, varname));
-  });
+  // def("unburyname", function(varname) {
+  //   var unbury = this.routines.get('unbury');
+  //   var namelist = this.routines.get('namelist');
+  //   return unbury.call(this, namelist.call(this, varname));
+  // });
 
-  def(["buriedp", "buried?"], function(list) {
-    list = lexpr(list);
-    var name;
+  // def(["buriedp", "buried?"], function(list) {
+  //   list = lexpr(list);
+  //   var name;
 
-    // Procedures
-    if (list.length) {
-      var procs = lexpr(list.shift());
-      if (procs.length) {
-        name = sexpr(procs[0]);
-        return (this.routines.has(name) && this.routines.get(name).buried) ? 1 : 0;
-      }
-    }
+  //   // Procedures
+  //   if (list.length) {
+  //     var procs = lexpr(list.shift());
+  //     if (procs.length) {
+  //       name = sexpr(procs[0]);
+  //       return (this.routines.has(name) && this.routines.get(name).buried) ? 1 : 0;
+  //     }
+  //   }
 
-    // Variables
-    if (list.length) {
-      var vars = lexpr(list.shift());
-      if (vars.length) {
-        name = sexpr(vars[0]);
-        // TODO: global only?
-        return (this.scopes[0].has(name) && this.scopes[0].get(name).buried) ? 1 : 0;
-      }
-    }
+  //   // Variables
+  //   if (list.length) {
+  //     var vars = lexpr(list.shift());
+  //     if (vars.length) {
+  //       name = sexpr(vars[0]);
+  //       // TODO: global only?
+  //       return (this.scopes[0].has(name) && this.scopes[0].get(name).buried) ? 1 : 0;
+  //     }
+  //   }
 
-    // Property lists
-    if (list.length) {
-      var plists = lexpr(list.shift());
-      if (plists.length) {
-        name = sexpr(plists[0]);
-        return (this.plists.has(name) && this.plists.get(name).buried) ? 1 : 0;
-      }
-    }
+  //   // Property lists
+  //   if (list.length) {
+  //     var plists = lexpr(list.shift());
+  //     if (plists.length) {
+  //       name = sexpr(plists[0]);
+  //       return (this.plists.has(name) && this.plists.get(name).buried) ? 1 : 0;
+  //     }
+  //   }
 
-    return 0;
-  });
+  //   return 0;
+  // });
 
   //----------------------------------------------------------------------
   //
@@ -2672,398 +2567,398 @@ function LogoInterpreter(turtle, stream, savehook)
       }.bind(this));
   });
 
-  def("forever", function(statements) {
-    statements = reparse(lexpr(statements));
-    var old_repcount = this.repcount;
-    var i = 1;
-    return promiseFinally(
-      promiseLoop(function(loop, resolve, reject) {
-        this.repcount = i++;
-        this.execute(statements)
-          .then(promiseYield)
-          .then(loop, reject);
-      }.bind(this)), function() {
-        this.repcount = old_repcount;
-      }.bind(this));
-  });
+  // def("forever", function(statements) {
+  //   statements = reparse(lexpr(statements));
+  //   var old_repcount = this.repcount;
+  //   var i = 1;
+  //   return promiseFinally(
+  //     promiseLoop(function(loop, resolve, reject) {
+  //       this.repcount = i++;
+  //       this.execute(statements)
+  //         .then(promiseYield)
+  //         .then(loop, reject);
+  //     }.bind(this)), function() {
+  //       this.repcount = old_repcount;
+  //     }.bind(this));
+  // });
 
-  def(["repcount", "#"], function() {
-    return this.repcount;
-  });
+  // def(["repcount", "#"], function() {
+  //   return this.repcount;
+  // });
 
-  def("if", function(tf, statements) {
-    if (Type(tf) === 'list')
-      tf = evaluateExpression(reparse(tf));
+  // def("if", function(tf, statements) {
+  //   if (Type(tf) === 'list')
+  //     tf = evaluateExpression(reparse(tf));
 
-    var statements2 = arguments[2];
+  //   var statements2 = arguments[2];
 
-    return Promise.resolve(tf)
-      .then(function(tf) {
-        tf = aexpr(tf);
-        statements = reparse(lexpr(statements));
-        if (!statements2) {
-          return tf ? this.execute(statements, {returnResult: true}) : undefined;
-        } else {
-          statements2 = reparse(lexpr(statements2));
-          return this.execute(tf ? statements : statements2, {returnResult: true});
-        }
-      }.bind(this));
+  //   return Promise.resolve(tf)
+  //     .then(function(tf) {
+  //       tf = aexpr(tf);
+  //       statements = reparse(lexpr(statements));
+  //       if (!statements2) {
+  //         return tf ? this.execute(statements, {returnResult: true}) : undefined;
+  //       } else {
+  //         statements2 = reparse(lexpr(statements2));
+  //         return this.execute(tf ? statements : statements2, {returnResult: true});
+  //       }
+  //     }.bind(this));
 
-  }, {maximum: 3});
+  // }, {maximum: 3});
 
-  def("ifelse", function(tf, statements1, statements2) {
-    if (Type(tf) === 'list')
-      tf = evaluateExpression(reparse(tf));
+  // def("ifelse", function(tf, statements1, statements2) {
+  //   if (Type(tf) === 'list')
+  //     tf = evaluateExpression(reparse(tf));
 
-    return Promise.resolve(tf)
-      .then(function(tf) {
-        tf = aexpr(tf);
-        statements1 = reparse(lexpr(statements1));
-        statements2 = reparse(lexpr(statements2));
+  //   return Promise.resolve(tf)
+  //     .then(function(tf) {
+  //       tf = aexpr(tf);
+  //       statements1 = reparse(lexpr(statements1));
+  //       statements2 = reparse(lexpr(statements2));
 
-        return this.execute(tf ? statements1 : statements2, {returnResult: true});
-      }.bind(this));
-  });
+  //       return this.execute(tf ? statements1 : statements2, {returnResult: true});
+  //     }.bind(this));
+  // });
 
-  def("test", function(tf) {
-    if (Type(tf) === 'list')
-      tf = evaluateExpression(reparse(tf));
+  // def("test", function(tf) {
+  //   if (Type(tf) === 'list')
+  //     tf = evaluateExpression(reparse(tf));
 
-    return Promise.resolve(tf)
-      .then(function(tf) {
-        tf = aexpr(tf);
-        // NOTE: A property on the scope, not within the scope
-        this.scopes[this.scopes.length - 1]._test = tf;
-      }.bind(this));
-  });
+  //   return Promise.resolve(tf)
+  //     .then(function(tf) {
+  //       tf = aexpr(tf);
+  //       // NOTE: A property on the scope, not within the scope
+  //       this.scopes[this.scopes.length - 1]._test = tf;
+  //     }.bind(this));
+  // });
 
-  def(["iftrue", "ift"], function(statements) {
-    statements = reparse(lexpr(statements));
-    var tf = this.scopes[this.scopes.length - 1]._test;
-    if (tf === undefined)
-      throw err('{_PROC_}: Called without TEST', ERRORS.NO_TEST);
-    return tf ? this.execute(statements, {returnResult: true}) : undefined;
-  });
+  // def(["iftrue", "ift"], function(statements) {
+  //   statements = reparse(lexpr(statements));
+  //   var tf = this.scopes[this.scopes.length - 1]._test;
+  //   if (tf === undefined)
+  //     throw err('{_PROC_}: Called without TEST', ERRORS.NO_TEST);
+  //   return tf ? this.execute(statements, {returnResult: true}) : undefined;
+  // });
 
-  def(["iffalse", "iff"], function(statements) {
-    statements = reparse(lexpr(statements));
-    var tf = this.scopes[this.scopes.length - 1]._test;
-    if (tf === undefined)
-      throw err('{_PROC_}: Called without TEST', ERRORS.NO_TEST);
-    return !tf ? this.execute(statements, {returnResult: true}) : undefined;
-  });
+  // def(["iffalse", "iff"], function(statements) {
+  //   statements = reparse(lexpr(statements));
+  //   var tf = this.scopes[this.scopes.length - 1]._test;
+  //   if (tf === undefined)
+  //     throw err('{_PROC_}: Called without TEST', ERRORS.NO_TEST);
+  //   return !tf ? this.execute(statements, {returnResult: true}) : undefined;
+  // });
 
-  def("stop", function() {
-    throw new Output();
-  });
+  // def("stop", function() {
+  //   throw new Output();
+  // });
 
-  def(["output", "op"], function(atom) {
-    throw new Output(atom);
-  });
+  // def(["output", "op"], function(atom) {
+  //   throw new Output(atom);
+  // });
 
-  this.last_error = undefined;
+  // this.last_error = undefined;
 
-  def("catch", function(tag, instructionlist) {
-    tag = sexpr(tag).toUpperCase();
-    instructionlist = reparse(lexpr(instructionlist));
-    return this.execute(instructionlist, {returnResult: true})
-      .catch(function(error) {
-        if (!(error instanceof LogoError) || error.tag !== tag)
-          throw error;
-        this.last_error = error;
-        return error.value;
-      }.bind(this));
-  }, {maximum: 2});
+  // def("catch", function(tag, instructionlist) {
+  //   tag = sexpr(tag).toUpperCase();
+  //   instructionlist = reparse(lexpr(instructionlist));
+  //   return this.execute(instructionlist, {returnResult: true})
+  //     .catch(function(error) {
+  //       if (!(error instanceof LogoError) || error.tag !== tag)
+  //         throw error;
+  //       this.last_error = error;
+  //       return error.value;
+  //     }.bind(this));
+  // }, {maximum: 2});
 
-  def("throw", function(tag) {
-    tag = sexpr(tag).toUpperCase();
-    var value = arguments[1];
-    var error = new LogoError(tag, value);
-    error.code = (arguments.length > 1) ? ERRORS.USER_GENERATED : ERRORS.THROW_ERROR;
-    throw error;
-  }, {maximum: 2});
+  // def("throw", function(tag) {
+  //   tag = sexpr(tag).toUpperCase();
+  //   var value = arguments[1];
+  //   var error = new LogoError(tag, value);
+  //   error.code = (arguments.length > 1) ? ERRORS.USER_GENERATED : ERRORS.THROW_ERROR;
+  //   throw error;
+  // }, {maximum: 2});
 
-  def("error", function() {
-    if (!this.last_error)
-      return [];
+  // def("error", function() {
+  //   if (!this.last_error)
+  //     return [];
 
-    var list = [
-      this.last_error.code,
-      this.last_error.message,
-      this.last_error.proc,
-      this.last_error.line
-    ];
-    this.last_error = undefined;
-    return list;
-  });
+  //   var list = [
+  //     this.last_error.code,
+  //     this.last_error.message,
+  //     this.last_error.proc,
+  //     this.last_error.line
+  //   ];
+  //   this.last_error = undefined;
+  //   return list;
+  // });
 
-  // Not Supported: pause
-  // Not Supported: continue
+  // // Not Supported: pause
+  // // Not Supported: continue
 
-  def("wait", function(time) {
-    return promiseYieldTime(Math.ceil(aexpr(time) / 60 * 1000));
-  });
+  // def("wait", function(time) {
+  //   return promiseYieldTime(Math.ceil(aexpr(time) / 60 * 1000));
+  // });
 
-  def("bye", function() {
-    throw new Bye;
-  });
+  // def("bye", function() {
+  //   throw new Bye;
+  // });
 
-  def(".maybeoutput", function(value) {
-    throw new Output(value);
-  });
+  // def(".maybeoutput", function(value) {
+  //   throw new Output(value);
+  // });
 
-  // Not Supported: goto
-  // Not Supported: tag
+  // // Not Supported: goto
+  // // Not Supported: tag
 
-  def("ignore", function(value) {
-  });
+  // def("ignore", function(value) {
+  // });
 
-  def("`", function(list) {
-    list = lexpr(list);
-    var out = [];
-    return promiseLoop(function(loop, resolve, reject) {
-      if (!list.length) {
-        resolve(out);
-        return;
-      }
-      var member = list.shift(), instructionlist;
+  // def("`", function(list) {
+  //   list = lexpr(list);
+  //   var out = [];
+  //   return promiseLoop(function(loop, resolve, reject) {
+  //     if (!list.length) {
+  //       resolve(out);
+  //       return;
+  //     }
+  //     var member = list.shift(), instructionlist;
 
-      // TODO: Nested backquotes: "Substitution is done only for
-      // commas at the same depth as the backquote in which they are
-      // found."
-      if (member === ',' && list.length) {
-        member = list.shift();
-        if (Type(member) === 'word')
-          member = [member];
-        instructionlist = reparse(member);
-        this.execute(instructionlist, {returnResult: true})
-          .then(function(result) {
-            out.push(result);
-            loop();
-          }).catch(reject);
-      } else if (member === ',@' && list.length) {
-        member = list.shift();
-        if (Type(member) === 'word')
-          member = [member];
-        instructionlist = reparse(member);
-        this.execute(instructionlist, {returnResult: true})
-          .then(function(result) {
-            out = out.concat(result);
-          })
-          .then(loop, reject);
-      } else if (Type(member) === 'word' && /^",/.test(member)) {
-        instructionlist = reparse(member.substring(2));
-        this.execute(instructionlist, {returnResult: true})
-          .then(function(result) {
-            out.push('"' + (Type(result) === 'list' ? result[0] : result));
-          })
-          .then(loop, reject);
-      } else if (Type(member) === 'word' && /^:,/.test(member)) {
-        instructionlist = reparse(member.substring(2));
-        this.execute(instructionlist, {returnResult: true})
-          .then(function(result) {
-            out.push(':' + (Type(result) === 'list' ? result[0] : result));
-          })
-          .then(loop, reject);
-      } else {
-        out.push(member);
-        loop();
-      }
-    }.bind(this));
-  });
+  //     // TODO: Nested backquotes: "Substitution is done only for
+  //     // commas at the same depth as the backquote in which they are
+  //     // found."
+  //     if (member === ',' && list.length) {
+  //       member = list.shift();
+  //       if (Type(member) === 'word')
+  //         member = [member];
+  //       instructionlist = reparse(member);
+  //       this.execute(instructionlist, {returnResult: true})
+  //         .then(function(result) {
+  //           out.push(result);
+  //           loop();
+  //         }).catch(reject);
+  //     } else if (member === ',@' && list.length) {
+  //       member = list.shift();
+  //       if (Type(member) === 'word')
+  //         member = [member];
+  //       instructionlist = reparse(member);
+  //       this.execute(instructionlist, {returnResult: true})
+  //         .then(function(result) {
+  //           out = out.concat(result);
+  //         })
+  //         .then(loop, reject);
+  //     } else if (Type(member) === 'word' && /^",/.test(member)) {
+  //       instructionlist = reparse(member.substring(2));
+  //       this.execute(instructionlist, {returnResult: true})
+  //         .then(function(result) {
+  //           out.push('"' + (Type(result) === 'list' ? result[0] : result));
+  //         })
+  //         .then(loop, reject);
+  //     } else if (Type(member) === 'word' && /^:,/.test(member)) {
+  //       instructionlist = reparse(member.substring(2));
+  //       this.execute(instructionlist, {returnResult: true})
+  //         .then(function(result) {
+  //           out.push(':' + (Type(result) === 'list' ? result[0] : result));
+  //         })
+  //         .then(loop, reject);
+  //     } else {
+  //       out.push(member);
+  //       loop();
+  //     }
+  //   }.bind(this));
+  // });
 
-  def("for", function(control, statements) {
-    control = reparse(lexpr(control));
-    statements = reparse(lexpr(statements));
+  // def("for", function(control, statements) {
+  //   control = reparse(lexpr(control));
+  //   statements = reparse(lexpr(statements));
 
-    function sign(x) { return x < 0 ? -1 : x > 0 ? 1 : 0; }
+  //   function sign(x) { return x < 0 ? -1 : x > 0 ? 1 : 0; }
 
-    var varname = sexpr(control.shift());
-    var start, limit, step, current;
+  //   var varname = sexpr(control.shift());
+  //   var start, limit, step, current;
 
-    return Promise.resolve(evaluateExpression(control))
-      .then(function(r) {
-        current = start = aexpr(r);
-        return evaluateExpression(control);
-      })
-      .then(function(r) {
-        limit = aexpr(r);
-        return control.length ?
-          evaluateExpression(control) : (limit < start ? -1 : 1);
-      })
-      .then(function(r) {
-        step = aexpr(r);
-      })
-      .then(function() {
-        return promiseLoop(function(loop, resolve, reject) {
-          if (sign(current - limit) === sign(step)) {
-            resolve();
-            return;
-          }
-          setlocal(varname, current);
-          this.execute(statements)
-            .then(function() {
-              current += step;
-            })
-            .then(promiseYield)
-            .then(loop, reject);
-        }.bind(this));
-      }.bind(this));
-  });
+  //   return Promise.resolve(evaluateExpression(control))
+  //     .then(function(r) {
+  //       current = start = aexpr(r);
+  //       return evaluateExpression(control);
+  //     })
+  //     .then(function(r) {
+  //       limit = aexpr(r);
+  //       return control.length ?
+  //         evaluateExpression(control) : (limit < start ? -1 : 1);
+  //     })
+  //     .then(function(r) {
+  //       step = aexpr(r);
+  //     })
+  //     .then(function() {
+  //       return promiseLoop(function(loop, resolve, reject) {
+  //         if (sign(current - limit) === sign(step)) {
+  //           resolve();
+  //           return;
+  //         }
+  //         setlocal(varname, current);
+  //         this.execute(statements)
+  //           .then(function() {
+  //             current += step;
+  //           })
+  //           .then(promiseYield)
+  //           .then(loop, reject);
+  //       }.bind(this));
+  //     }.bind(this));
+  // });
 
-  def("dotimes", function(control, statements) {
-    control = reparse(lexpr(control));
-    statements = reparse(lexpr(statements));
+  // def("dotimes", function(control, statements) {
+  //   control = reparse(lexpr(control));
+  //   statements = reparse(lexpr(statements));
 
-    var varname = sexpr(control.shift());
-    var times, current = 1;
+  //   var varname = sexpr(control.shift());
+  //   var times, current = 1;
 
-    return Promise.resolve(evaluateExpression(control))
-      .then(function(r) {
-        times = aexpr(r);
-      })
-      .then(function() {
-        return promiseLoop(function(loop, resolve, reject) {
-          if (current > times) {
-            resolve();
-            return;
-          }
-          setlocal(varname, current);
-          this.execute(statements)
-            .then(function() {
-              ++current;
-            })
-            .then(promiseYield)
-            .then(loop, reject);
-        }.bind(this));
-      }.bind(this));
-  });
+  //   return Promise.resolve(evaluateExpression(control))
+  //     .then(function(r) {
+  //       times = aexpr(r);
+  //     })
+  //     .then(function() {
+  //       return promiseLoop(function(loop, resolve, reject) {
+  //         if (current > times) {
+  //           resolve();
+  //           return;
+  //         }
+  //         setlocal(varname, current);
+  //         this.execute(statements)
+  //           .then(function() {
+  //             ++current;
+  //           })
+  //           .then(promiseYield)
+  //           .then(loop, reject);
+  //       }.bind(this));
+  //     }.bind(this));
+  // });
 
-  function checkevalblock(block) {
-    block = block();
-    if (Type(block) === 'list') { return block; }
-    throw err("{_PROC_}: Expected block", ERRORS.BAD_INPUT);
-  }
+  // function checkevalblock(block) {
+  //   block = block();
+  //   if (Type(block) === 'list') { return block; }
+  //   throw err("{_PROC_}: Expected block", ERRORS.BAD_INPUT);
+  // }
 
-  def("do.while", function(block, tfexpression) {
-    block = reparse(lexpr(checkevalblock(block)));
-    return promiseLoop(function(loop, resolve, reject) {
-      this.execute(block)
-        .then(tfexpression)
-        .then(function(tf) {
-          if (Type(tf) === 'list')
-            tf = evaluateExpression(reparse(tf));
-          return tf;
-        })
-        .then(function(tf) {
-          if (!tf) {
-            resolve();
-            return;
-          }
-          promiseYield().then(loop);
-        }, reject);
-    }.bind(this));
-  }, {noeval: true});
+  // def("do.while", function(block, tfexpression) {
+  //   block = reparse(lexpr(checkevalblock(block)));
+  //   return promiseLoop(function(loop, resolve, reject) {
+  //     this.execute(block)
+  //       .then(tfexpression)
+  //       .then(function(tf) {
+  //         if (Type(tf) === 'list')
+  //           tf = evaluateExpression(reparse(tf));
+  //         return tf;
+  //       })
+  //       .then(function(tf) {
+  //         if (!tf) {
+  //           resolve();
+  //           return;
+  //         }
+  //         promiseYield().then(loop);
+  //       }, reject);
+  //   }.bind(this));
+  // }, {noeval: true});
 
-  def("while", function(tfexpression, block) {
-    block = reparse(lexpr(checkevalblock(block)));
-    return promiseLoop(function(loop, resolve, reject) {
-      Promise.resolve(tfexpression())
-        .then(function(tf) {
-          if (Type(tf) === 'list')
-            tf = evaluateExpression(reparse(tf));
-          return tf;
-        })
-        .then(function(tf) {
-          if (!tf) {
-            resolve();
-            return;
-          }
-          this.execute(block)
-            .then(promiseYield)
-            .then(loop, reject);
-        }.bind(this), reject);
-    }.bind(this));
-  }, {noeval: true});
+  // def("while", function(tfexpression, block) {
+  //   block = reparse(lexpr(checkevalblock(block)));
+  //   return promiseLoop(function(loop, resolve, reject) {
+  //     Promise.resolve(tfexpression())
+  //       .then(function(tf) {
+  //         if (Type(tf) === 'list')
+  //           tf = evaluateExpression(reparse(tf));
+  //         return tf;
+  //       })
+  //       .then(function(tf) {
+  //         if (!tf) {
+  //           resolve();
+  //           return;
+  //         }
+  //         this.execute(block)
+  //           .then(promiseYield)
+  //           .then(loop, reject);
+  //       }.bind(this), reject);
+  //   }.bind(this));
+  // }, {noeval: true});
 
-  def("do.until", function(block, tfexpression) {
-    block = reparse(lexpr(checkevalblock(block)));
-    return promiseLoop(function(loop, resolve, reject) {
-      this.execute(block)
-        .then(tfexpression)
-        .then(function(tf) {
-          if (Type(tf) === 'list')
-            tf = evaluateExpression(reparse(tf));
-          return tf;
-        })
-        .then(function(tf) {
-          if (tf) {
-            resolve();
-            return;
-          }
-          promiseYield().then(loop);
-        }, reject);
-    }.bind(this));
-  }, {noeval: true});
+  // def("do.until", function(block, tfexpression) {
+  //   block = reparse(lexpr(checkevalblock(block)));
+  //   return promiseLoop(function(loop, resolve, reject) {
+  //     this.execute(block)
+  //       .then(tfexpression)
+  //       .then(function(tf) {
+  //         if (Type(tf) === 'list')
+  //           tf = evaluateExpression(reparse(tf));
+  //         return tf;
+  //       })
+  //       .then(function(tf) {
+  //         if (tf) {
+  //           resolve();
+  //           return;
+  //         }
+  //         promiseYield().then(loop);
+  //       }, reject);
+  //   }.bind(this));
+  // }, {noeval: true});
 
-  def("until", function(tfexpression, block) {
-    block = reparse(lexpr(checkevalblock(block)));
-    return promiseLoop(function(loop, resolve, reject) {
-      Promise.resolve(tfexpression())
-        .then(function(tf) {
-          if (Type(tf) === 'list')
-            tf = evaluateExpression(reparse(tf));
-          return tf;
-        })
-        .then(function(tf) {
-          if (tf) {
-            resolve();
-            return;
-          }
-          this.execute(block)
-            .then(promiseYield)
-            .then(loop, reject);
-        }.bind(this), reject);
-    }.bind(this));
-  }, {noeval: true});
+  // def("until", function(tfexpression, block) {
+  //   block = reparse(lexpr(checkevalblock(block)));
+  //   return promiseLoop(function(loop, resolve, reject) {
+  //     Promise.resolve(tfexpression())
+  //       .then(function(tf) {
+  //         if (Type(tf) === 'list')
+  //           tf = evaluateExpression(reparse(tf));
+  //         return tf;
+  //       })
+  //       .then(function(tf) {
+  //         if (tf) {
+  //           resolve();
+  //           return;
+  //         }
+  //         this.execute(block)
+  //           .then(promiseYield)
+  //           .then(loop, reject);
+  //       }.bind(this), reject);
+  //   }.bind(this));
+  // }, {noeval: true});
 
-  def("case", function(value, clauses) {
-    clauses = lexpr(clauses);
+  // def("case", function(value, clauses) {
+  //   clauses = lexpr(clauses);
 
-    for (var i = 0; i < clauses.length; ++i) {
-      var clause = lexpr(clauses[i]);
-      var first = clause.shift();
-      if (isKeyword(first, 'ELSE'))
-        return evaluateExpression(clause);
-      if (lexpr(first).some(function(x) { return equal(x, value); }))
-        return evaluateExpression(clause);
-    }
-    return undefined;
-  });
+  //   for (var i = 0; i < clauses.length; ++i) {
+  //     var clause = lexpr(clauses[i]);
+  //     var first = clause.shift();
+  //     if (isKeyword(first, 'ELSE'))
+  //       return evaluateExpression(clause);
+  //     if (lexpr(first).some(function(x) { return equal(x, value); }))
+  //       return evaluateExpression(clause);
+  //   }
+  //   return undefined;
+  // });
 
-  def("cond", function(clauses) {
-    clauses = lexpr(clauses);
-    return promiseLoop(function(loop, resolve, reject) {
-      if (!clauses.length) {
-        resolve();
-        return;
-      }
-      var clause = lexpr(clauses.shift());
-      var first = clause.shift();
-      if (isKeyword(first, 'ELSE')) {
-        resolve(evaluateExpression(clause));
-        return;
-      }
-      evaluateExpression(reparse(lexpr(first)))
-        .then(function(result) {
-          if (result) {
-            resolve(evaluateExpression(clause));
-            return;
-          }
-          loop();
-        }, reject);
-    });
-  });
+  // def("cond", function(clauses) {
+  //   clauses = lexpr(clauses);
+  //   return promiseLoop(function(loop, resolve, reject) {
+  //     if (!clauses.length) {
+  //       resolve();
+  //       return;
+  //     }
+  //     var clause = lexpr(clauses.shift());
+  //     var first = clause.shift();
+  //     if (isKeyword(first, 'ELSE')) {
+  //       resolve(evaluateExpression(clause));
+  //       return;
+  //     }
+  //     evaluateExpression(reparse(lexpr(first)))
+  //       .then(function(result) {
+  //         if (result) {
+  //           resolve(evaluateExpression(clause));
+  //           return;
+  //         }
+  //         loop();
+  //       }, reject);
+  //   });
+  // });
 
   //
   // 8.2 Template-based Iteration
@@ -3076,207 +2971,207 @@ function LogoInterpreter(turtle, stream, savehook)
 
   // TODO: multiple inputs
 
-  def("apply", function(procname, list) {
-    procname = sexpr(procname);
+  // def("apply", function(procname, list) {
+  //   procname = sexpr(procname);
 
-    var routine = this.routines.get(procname);
-    if (!routine)
-      throw err("{_PROC_}: Don't know how to {name:U}", { name: procname }, ERRORS.BAD_PROC);
-    if (routine.special || routine.noeval)
-      throw err("Can't apply {_PROC_} to special {name:U}", { name: procname }, ERRORS.BAD_INPUT);
+  //   var routine = this.routines.get(procname);
+  //   if (!routine)
+  //     throw err("{_PROC_}: Don't know how to {name:U}", { name: procname }, ERRORS.BAD_PROC);
+  //   if (routine.special || routine.noeval)
+  //     throw err("Can't apply {_PROC_} to special {name:U}", { name: procname }, ERRORS.BAD_INPUT);
 
-    return routine.apply(this, lexpr(list));
-  });
+  //   return routine.apply(this, lexpr(list));
+  // });
 
-  def("invoke", function(procname, input1) {
-    procname = sexpr(procname);
+  // def("invoke", function(procname, input1) {
+  //   procname = sexpr(procname);
 
-    var routine = this.routines.get(procname);
-    if (!routine)
-      throw err("{_PROC_}: Don't know how to {name:U}", { name: procname }, ERRORS.BAD_PROC);
-    if (routine.special || routine.noeval)
-      throw err("Can't apply {_PROC_} to special {name:U}", { name: procname }, ERRORS.BAD_INPUT);
+  //   var routine = this.routines.get(procname);
+  //   if (!routine)
+  //     throw err("{_PROC_}: Don't know how to {name:U}", { name: procname }, ERRORS.BAD_PROC);
+  //   if (routine.special || routine.noeval)
+  //     throw err("Can't apply {_PROC_} to special {name:U}", { name: procname }, ERRORS.BAD_INPUT);
 
-    var args = [];
-    for (var i = 1; i < arguments.length; ++i)
-      args.push(arguments[i]);
+  //   var args = [];
+  //   for (var i = 1; i < arguments.length; ++i)
+  //     args.push(arguments[i]);
 
-    return routine.apply(this, args);
-  }, {minimum: 1, maximum: -1});
+  //   return routine.apply(this, args);
+  // }, {minimum: 1, maximum: -1});
 
-  def("foreach", function(list, procname) {
-    procname = sexpr(procname);
+  // def("foreach", function(list, procname) {
+  //   procname = sexpr(procname);
 
-    var routine = this.routines.get(procname);
-    if (!routine)
-      throw err("{_PROC_}: Don't know how to {name:U}", { name: procname }, ERRORS.BAD_PROC);
-    if (routine.special || routine.noeval)
-      throw err("Can't apply {_PROC_} to special {name:U}", { name: procname }, ERRORS.BAD_INPUT);
-    list = lexpr(list);
-    return promiseLoop(function(loop, resolve, reject) {
-      if (!list.length) {
-        resolve();
-        return;
-      }
-      Promise.resolve(routine.call(this, list.shift()))
-        .then(loop, reject);
-    }.bind(this));
-  });
-
-
-  def("map", function(procname, list/*,  ... */) {
-    procname = sexpr(procname);
-
-    var routine = this.routines.get(procname);
-    if (!routine)
-      throw err("{_PROC_}: Don't know how to {name:U}", { name: procname }, ERRORS.BAD_PROC);
-    if (routine.special || routine.noeval)
-      throw err("Can't apply {_PROC_} to special {name:U}", { name: procname }, ERRORS.BAD_INPUT);
-
-    var lists = [].slice.call(arguments, 1).map(lexpr);
-    if (!lists.length)
-      throw err("{_PROC_}: Expected list", ERRORS.BAD_INPUT);
-
-    var mapped = [];
-    return promiseLoop(function(loop, resolve, reject) {
-      if (!lists[0].length) {
-        resolve(mapped);
-        return;
-      }
-
-      var args = lists.map(function(l) {
-        if (!l.length)
-          throw err("{_PROC_}: Expected lists of equal length", ERRORS.BAD_INPUT);
-        return l.shift();
-      });
-
-      Promise.resolve(routine.apply(this, args))
-        .then(function(value) { mapped.push(value); })
-        .then(loop, reject);
-    }.bind(this));
-  }, {maximum: -1});
-
-  // Not Supported: map.se
-
-  def("filter", function(procname, list) {
-    procname = sexpr(procname);
-
-    var routine = this.routines.get(procname);
-    if (!routine)
-      throw err("{_PROC_}: Don't know how to {name:U}", { name: procname }, ERRORS.BAD_PROC);
-    if (routine.special || routine.noeval)
-      throw err("Can't apply {_PROC_} to special {name:U}", { name: procname }, ERRORS.BAD_INPUT);
-
-    list = lexpr(list);
-    var filtered = [];
-    return promiseLoop(function(loop, resolve, reject) {
-      if (!list.length) {
-        resolve(filtered);
-        return;
-      }
-      var item = list.shift();
-      Promise.resolve(routine.call(this, item))
-        .then(function(value) { if (value) filtered.push(item); })
-        .then(loop, reject);
-    }.bind(this));
-  });
-
-  def("find", function(procname, list) {
-    procname = sexpr(procname);
-
-    var routine = this.routines.get(procname);
-    if (!routine)
-      throw err("{_PROC_}: Don't know how to {name:U}", { name: procname }, ERRORS.BAD_PROC);
-    if (routine.special || routine.noeval)
-      throw err("Can't apply {_PROC_} to special {name:U}", { name: procname }, ERRORS.BAD_INPUT);
-
-    list = lexpr(list);
-    return promiseLoop(function(loop, resolve, reject) {
-      if (!list.length) {
-        resolve([]);
-        return;
-      }
-      var item = list.shift();
-      Promise.resolve(routine.call(this, item))
-        .then(function(value) {
-          if (value) {
-            resolve(item);
-            return;
-          }
-          loop();
-      }, reject);
-    }.bind(this));
-  });
-
-  def("reduce", function(procname, list) {
-    procname = sexpr(procname);
-    list = lexpr(list);
-    var value = arguments[2] !== undefined ? arguments[2] : list.shift();
-
-    var procedure = this.routines.get(procname);
-    if (!procedure)
-      throw err("{_PROC_}: Don't know how to {name:U}", { name: procname }, ERRORS.BAD_PROC);
-    if (procedure.special || procedure.noeval)
-      throw err("Can't apply {_PROC_} to special {name:U}", { name: procname }, ERRORS.BAD_INPUT);
-
-    return promiseLoop(function(loop, resolve, reject) {
-      if (!list.length) {
-        resolve(value);
-        return;
-      }
-      Promise.resolve(procedure.call(this, value, list.shift()))
-        .then(function(result) { value = result; })
-        .then(loop, reject);
-    }.bind(this));
-  }, {maximum: 3});
+  //   var routine = this.routines.get(procname);
+  //   if (!routine)
+  //     throw err("{_PROC_}: Don't know how to {name:U}", { name: procname }, ERRORS.BAD_PROC);
+  //   if (routine.special || routine.noeval)
+  //     throw err("Can't apply {_PROC_} to special {name:U}", { name: procname }, ERRORS.BAD_INPUT);
+  //   list = lexpr(list);
+  //   return promiseLoop(function(loop, resolve, reject) {
+  //     if (!list.length) {
+  //       resolve();
+  //       return;
+  //     }
+  //     Promise.resolve(routine.call(this, list.shift()))
+  //       .then(loop, reject);
+  //   }.bind(this));
+  // });
 
 
-  def("crossmap", function(procname, list/*,  ... */) {
-    procname = sexpr(procname);
+  // def("map", function(procname, list/*,  ... */) {
+  //   procname = sexpr(procname);
 
-    var routine = this.routines.get(procname);
-    if (!routine)
-      throw err("{_PROC_}: Don't know how to {name:U}", { name: procname }, ERRORS.BAD_PROC);
-    if (routine.special || routine.noeval)
-      throw err("Can't apply {_PROC_} to special {name:U}", { name: procname }, ERRORS.BAD_INPUT);
+  //   var routine = this.routines.get(procname);
+  //   if (!routine)
+  //     throw err("{_PROC_}: Don't know how to {name:U}", { name: procname }, ERRORS.BAD_PROC);
+  //   if (routine.special || routine.noeval)
+  //     throw err("Can't apply {_PROC_} to special {name:U}", { name: procname }, ERRORS.BAD_INPUT);
 
-    var lists = [].slice.call(arguments, 1).map(lexpr);
-    if (!lists.length)
-      throw err("{_PROC_}: Expected list", ERRORS.BAD_INPUT);
+  //   var lists = [].slice.call(arguments, 1).map(lexpr);
+  //   if (!lists.length)
+  //     throw err("{_PROC_}: Expected list", ERRORS.BAD_INPUT);
 
-    // Special case: if only one element is present, use as list of lists.
-    if (lists.length === 1)
-      lists = lists[0].map(lexpr);
+  //   var mapped = [];
+  //   return promiseLoop(function(loop, resolve, reject) {
+  //     if (!lists[0].length) {
+  //       resolve(mapped);
+  //       return;
+  //     }
 
-    var indexes = lists.map(function() { return 0; });
-    var done = false;
+  //     var args = lists.map(function(l) {
+  //       if (!l.length)
+  //         throw err("{_PROC_}: Expected lists of equal length", ERRORS.BAD_INPUT);
+  //       return l.shift();
+  //     });
 
-    var mapped = [];
-    return promiseLoop(function(loop, resolve, reject) {
-      if (done) {
-        resolve(mapped);
-        return;
-      }
+  //     Promise.resolve(routine.apply(this, args))
+  //       .then(function(value) { mapped.push(value); })
+  //       .then(loop, reject);
+  //   }.bind(this));
+  // }, {maximum: -1});
 
-      var args = indexes.map(function(v, i) { return lists[i][v]; });
+  // // Not Supported: map.se
 
-      var pos = indexes.length - 1;
-      ++indexes[pos];
-      while (indexes[pos] === lists[pos].length) {
-        if (pos === 0) {
-          done = true;
-          break;
-        }
-        indexes[pos] = 0;
-        pos--;
-        ++indexes[pos];
-      }
+  // def("filter", function(procname, list) {
+  //   procname = sexpr(procname);
 
-      Promise.resolve(routine.apply(this, args))
-        .then(function(value) { mapped.push(value); })
-        .then(loop, reject);
-    }.bind(this));
-  }, {maximum: -1});
+  //   var routine = this.routines.get(procname);
+  //   if (!routine)
+  //     throw err("{_PROC_}: Don't know how to {name:U}", { name: procname }, ERRORS.BAD_PROC);
+  //   if (routine.special || routine.noeval)
+  //     throw err("Can't apply {_PROC_} to special {name:U}", { name: procname }, ERRORS.BAD_INPUT);
+
+  //   list = lexpr(list);
+  //   var filtered = [];
+  //   return promiseLoop(function(loop, resolve, reject) {
+  //     if (!list.length) {
+  //       resolve(filtered);
+  //       return;
+  //     }
+  //     var item = list.shift();
+  //     Promise.resolve(routine.call(this, item))
+  //       .then(function(value) { if (value) filtered.push(item); })
+  //       .then(loop, reject);
+  //   }.bind(this));
+  // });
+
+  // def("find", function(procname, list) {
+  //   procname = sexpr(procname);
+
+  //   var routine = this.routines.get(procname);
+  //   if (!routine)
+  //     throw err("{_PROC_}: Don't know how to {name:U}", { name: procname }, ERRORS.BAD_PROC);
+  //   if (routine.special || routine.noeval)
+  //     throw err("Can't apply {_PROC_} to special {name:U}", { name: procname }, ERRORS.BAD_INPUT);
+
+  //   list = lexpr(list);
+  //   return promiseLoop(function(loop, resolve, reject) {
+  //     if (!list.length) {
+  //       resolve([]);
+  //       return;
+  //     }
+  //     var item = list.shift();
+  //     Promise.resolve(routine.call(this, item))
+  //       .then(function(value) {
+  //         if (value) {
+  //           resolve(item);
+  //           return;
+  //         }
+  //         loop();
+  //     }, reject);
+  //   }.bind(this));
+  // });
+
+  // def("reduce", function(procname, list) {
+  //   procname = sexpr(procname);
+  //   list = lexpr(list);
+  //   var value = arguments[2] !== undefined ? arguments[2] : list.shift();
+
+  //   var procedure = this.routines.get(procname);
+  //   if (!procedure)
+  //     throw err("{_PROC_}: Don't know how to {name:U}", { name: procname }, ERRORS.BAD_PROC);
+  //   if (procedure.special || procedure.noeval)
+  //     throw err("Can't apply {_PROC_} to special {name:U}", { name: procname }, ERRORS.BAD_INPUT);
+
+  //   return promiseLoop(function(loop, resolve, reject) {
+  //     if (!list.length) {
+  //       resolve(value);
+  //       return;
+  //     }
+  //     Promise.resolve(procedure.call(this, value, list.shift()))
+  //       .then(function(result) { value = result; })
+  //       .then(loop, reject);
+  //   }.bind(this));
+  // }, {maximum: 3});
+
+
+  // def("crossmap", function(procname, list/*,  ... */) {
+  //   procname = sexpr(procname);
+
+  //   var routine = this.routines.get(procname);
+  //   if (!routine)
+  //     throw err("{_PROC_}: Don't know how to {name:U}", { name: procname }, ERRORS.BAD_PROC);
+  //   if (routine.special || routine.noeval)
+  //     throw err("Can't apply {_PROC_} to special {name:U}", { name: procname }, ERRORS.BAD_INPUT);
+
+  //   var lists = [].slice.call(arguments, 1).map(lexpr);
+  //   if (!lists.length)
+  //     throw err("{_PROC_}: Expected list", ERRORS.BAD_INPUT);
+
+  //   // Special case: if only one element is present, use as list of lists.
+  //   if (lists.length === 1)
+  //     lists = lists[0].map(lexpr);
+
+  //   var indexes = lists.map(function() { return 0; });
+  //   var done = false;
+
+  //   var mapped = [];
+  //   return promiseLoop(function(loop, resolve, reject) {
+  //     if (done) {
+  //       resolve(mapped);
+  //       return;
+  //     }
+
+  //     var args = indexes.map(function(v, i) { return lists[i][v]; });
+
+  //     var pos = indexes.length - 1;
+  //     ++indexes[pos];
+  //     while (indexes[pos] === lists[pos].length) {
+  //       if (pos === 0) {
+  //         done = true;
+  //         break;
+  //       }
+  //       indexes[pos] = 0;
+  //       pos--;
+  //       ++indexes[pos];
+  //     }
+
+  //     Promise.resolve(routine.apply(this, args))
+  //       .then(function(value) { mapped.push(value); })
+  //       .then(loop, reject);
+  //   }.bind(this));
+  // }, {maximum: -1});
 
   // Not Supported: cascade
   // Not Supported: cascade.2

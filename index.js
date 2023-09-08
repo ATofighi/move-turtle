@@ -239,7 +239,7 @@ function initInput() {
     }
     setTimeout(function() {
       document.body.classList.add('running');
-      logo.run(v).catch(function (e) {
+      logo.run('home\nclean\n' + v).catch(function (e) {
         error.innerHTML = '';
         error.appendChild(document.createTextNode(e.message));
         error.classList.add('shown');
