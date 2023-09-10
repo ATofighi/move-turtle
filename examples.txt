@@ -10,5 +10,23 @@ rt 90
 to star
   repeat 5 [ fd 100 rt 144 ]
 end
-cs
 star
+
+to square :length
+  repeat 4 [ fd :length rt 90 ]
+end
+repeat 36 [ square random 200 rt 10 ]
+
+to tree :size
+   if :size < 5 [fd :size bk :size stop]
+   fd :size/3
+   lt 30 tree :size*2/3 rt 30
+   fd :size/6
+   rt 25 tree :size/2 lt 25
+   fd :size/3
+   rt 25 tree :size/2 lt 25
+   fd :size/6
+   bk :size
+   wait 1
+end
+tree 150
